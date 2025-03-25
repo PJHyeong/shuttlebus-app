@@ -15,4 +15,4 @@
                         android:value="본인 Client ID 복사" />
         
 
-본인 Client ID 복사 후 실행...!!!
+본인 Client ID 복사 후 실행...!!!!
