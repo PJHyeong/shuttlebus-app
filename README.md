@@ -9,8 +9,10 @@
 5.등록한 애플리케이션의 인증 정보를 선택해 키 ID를 확인합니다.
 
 인증 정보에서 Client ID 복사 후 AndroidManifest.xml 에서
-<meta-data
-            android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="본인 Client ID 복사" />
+
+            <meta-data
+                        android:name="com.naver.maps.map.NCP_KEY_ID"
+                        android:value="본인 Client ID 복사" />
+        
 
 본인 Client ID 복사 후 실행
