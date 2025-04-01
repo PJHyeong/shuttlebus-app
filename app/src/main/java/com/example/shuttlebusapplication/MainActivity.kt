@@ -1,4 +1,4 @@
-package com.example.lovetest
+package com.example.shuttlebusapplication
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
