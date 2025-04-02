@@ -13,12 +13,12 @@
         │── config/    
         │   ├── db.js             # ✅데이터베이스 연결 설정 - 25/04/01    
         │── models/    
-        │   ├── User.js           #✅ 유저 모델 - 25/04/02    
+        │   ├── User.js           # ✅유저 모델 - 25/04/02    
         │   ├── Notification.js   # 알림 모델    
         │   ├── BusStop.js        # 정류장 모델    
         │   ├── Announcement.js   # 공지사항 모델       
         │── routes/       
-        │   ├── authRoutes.js     #✅ 로그인 및 회원가입 라우트 - 25/04/02       
+        │   ├── authRoutes.js     # ⚠️로그인 및 회원가입 라우트 - 25/04/02(외부 API로 변경 고민 중)          
         │   ├── busStopRoutes.js  # 셔틀버스 정류장 관련 라우트       
         │   ├── notificationRoutes.js # 알림 관련 라우트       
         │   ├── announcementRoutes.js # 공지사항 관련 라우트       
