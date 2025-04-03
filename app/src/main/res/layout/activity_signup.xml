@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="24dp">
+
+    <!-- 상단: 80% 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="8"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:paddingBottom="24dp">
+
+        <!-- 닉네임 입력 -->
+        <EditText
+            android:id="@+id/etNickname"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="닉네임을 입력하세요"
+            android:background="@drawable/edittext_box"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginBottom="24dp"
+            android:inputType="textPersonName" />
+
+        <!-- 푸시 알림 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="푸시 알림 수신 동의"
+                android:textSize="16sp"
+                android:textColor="#333333" />
+
+            <Switch
+                android:id="@+id/switchPush"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:minWidth="48dp" />
+        </LinearLayout>
+
+        <!-- 가입하기 버튼 -->
+        <Button
+            android:id="@+id/btnSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="가입하기"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:backgroundTint="@color/purple_500"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <!-- 하단: 20% 영역 (이전 버튼) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:gravity="center"
+
+
+    >
+
+    <ImageButton
+        android:id="@+id/btnBackToLogin"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="fitCenter"
+        android:background="@android:color/transparent"
+        android:contentDescription="이전 화면으로 돌아가기"
+        android:src="@drawable/previous_img" />
+</LinearLayout>
+
+    </LinearLayout>
