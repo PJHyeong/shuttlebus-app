@@ -18,7 +18,8 @@
     - express - v5.1.0     
 
 
-
+    
+```
          shuttle-bus-backend/    
         │── config/    
         │   ├── db.js             # ✅데이터베이스 연결 설정 - 25/04/01    
@@ -35,4 +36,5 @@
         │── middleware/       
         │   ├── authMiddleware.js # JWT 인증 미들웨어       
         │── server.js             # ✅메인 서버 파일 - 25/04/01       
-        │── .env                  # ✅환경 변수 설정 -  25/04/01       
+        │── .env                  # ✅환경 변수 설정 -  25/04/01     
+```
