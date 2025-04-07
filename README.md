@@ -1,3 +1,7 @@
+<div align=center>
+            <img src="https://github.com/user-attachments/assets/58a504d3-33e8-4a73-b998-1a50abd75a83" width="200" height="200" />
+</div>
+
 ## 셔틀 버스 앱 제작
 클라이언트 ID 발급    
 네이버 지도 SDK를 사용하려면 다음과 같이 애플리케이션을 등록하고 클라이언트 ID를 발급받아야 합니다.    
