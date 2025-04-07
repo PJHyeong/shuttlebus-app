@@ -1,60 +1,100 @@
 package com.example.shuttlebusapplication.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController // ✅ 추가!
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.shuttlebusapplication.adapter.ShuttleAdapter
+import com.example.shuttlebusapplication.databinding.FragmentTimetableBinding
+import com.example.shuttlebusapplication.repository.ShuttleRepository
 import com.example.shuttlebusapplication.R
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [TimetableFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class TimetableFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentTimetableBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var adapter: ShuttleAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_timetable, container, false)
+    ): View {
+        _binding = FragmentTimetableBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment TimetableFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            TimetableFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // ✅ 메뉴 이동 기능 추가
+        binding.btnMenu.setOnClickListener {
+            findNavController().navigate(R.id.mainMenuFragment)
+        }
+
+        // 초기 데이터 (기본: Route4)
+        val initialData = ShuttleRepository().getRoute4()
+        adapter = ShuttleAdapter(initialData)
+
+        binding.recyclerViewTimetable.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerViewTimetable.adapter = adapter
+
+        // ✅ 선택된 탭 강조 함수
+        fun updateSelectedTab(selectedButtonId: Int) {
+            val tabButtons = listOf(
+                binding.tabBtnRoute1,
+                binding.tabBtnRoute2,
+                binding.tabBtnRoute3,
+                binding.tabBtnRoute4,
+                binding.tabBtnRoute5
+            )
+
+            tabButtons.forEach { button ->
+                if (button.id == selectedButtonId) {
+                    button.setBackgroundColor(resources.getColor(R.color.purple_500, null))
+                    button.setTextColor(resources.getColor(R.color.white, null))
+                } else {
+                    button.setBackgroundColor(resources.getColor(R.color.tab_unselected, null))
+                    button.setTextColor(resources.getColor(R.color.black, null))
                 }
             }
+        }
+
+        // 앱 실행 시 초기 선택 탭 (Route4)
+        updateSelectedTab(binding.tabBtnRoute4.id)
+
+        // 탭 클릭 이벤트: 데이터 업데이트 + 탭 강조
+        binding.tabBtnRoute1.setOnClickListener {
+            adapter.updateData(ShuttleRepository().getRoute1())
+            updateSelectedTab(binding.tabBtnRoute1.id)
+        }
+
+        binding.tabBtnRoute2.setOnClickListener {
+            adapter.updateData(ShuttleRepository().getRoute2())
+            updateSelectedTab(binding.tabBtnRoute2.id)
+        }
+
+        binding.tabBtnRoute3.setOnClickListener {
+            adapter.updateData(ShuttleRepository().getRoute3())
+            updateSelectedTab(binding.tabBtnRoute3.id)
+        }
+
+        binding.tabBtnRoute4.setOnClickListener {
+            adapter.updateData(ShuttleRepository().getRoute4())
+            updateSelectedTab(binding.tabBtnRoute4.id)
+        }
+
+        binding.tabBtnRoute5.setOnClickListener {
+            adapter.updateData(ShuttleRepository().getRoute5())
+            updateSelectedTab(binding.tabBtnRoute5.id)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

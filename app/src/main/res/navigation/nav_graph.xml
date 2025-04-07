@@ -26,20 +26,36 @@
         android:id="@+id/mapFragment"
         android:name="com.example.shuttlebusapplication.fragment.MapFragment"
         android:label="fragment_map"
-        tools:layout="@layout/fragment_map" />
+        tools:layout="@layout/fragment_map" >
+        <action
+            android:id="@+id/action_mapFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
     <fragment
         android:id="@+id/noticeFragment"
         android:name="com.example.shuttlebusapplication.fragment.NoticeFragment"
         android:label="fragment_notice"
-        tools:layout="@layout/fragment_notice" />
+        tools:layout="@layout/fragment_notice" >
+        <action
+            android:id="@+id/action_noticeFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.shuttlebusapplication.fragment.SettingsFragment"
         android:label="fragment_settings"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_settings" >
+        <action
+            android:id="@+id/action_settingsFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
     <fragment
         android:id="@+id/timetableFragment"
         android:name="com.example.shuttlebusapplication.fragment.TimetableFragment"
         android:label="fragment_timetable"
-        tools:layout="@layout/fragment_timetable" />
+        tools:layout="@layout/fragment_timetable" >
+        <action
+            android:id="@+id/action_timetableFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
 </navigation>
