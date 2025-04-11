@@ -9,6 +9,8 @@ import com.naver.maps.map.*
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.PolylineOverlay
+import com.naver.maps.map.util.MarkerIcons
+import com.naver.maps.map.overlay.OverlayImage
 import android.graphics.Color
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -63,6 +65,8 @@ class MapViewFragment : Fragment(), OnMapReadyCallback {
             val marker = Marker()
             marker.position = location
             marker.captionText = title
+            marker.icon = OverlayImage.fromResource(R.drawable.bus_marker)
+            marker.anchor = Marker.DEFAULT_ANCHOR
             marker.map = naverMap
         }
 
