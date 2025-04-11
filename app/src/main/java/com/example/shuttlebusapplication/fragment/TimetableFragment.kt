@@ -5,12 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController // ✅ 추가!
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.adapter.ShuttleAdapter
 import com.example.shuttlebusapplication.databinding.FragmentTimetableBinding
 import com.example.shuttlebusapplication.repository.ShuttleRepository
-import com.example.shuttlebusapplication.R
 
 class TimetableFragment : Fragment() {
 
@@ -18,6 +19,9 @@ class TimetableFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ShuttleAdapter
+
+    // ✅ 헤더 뷰를 담을 ViewGroup
+    private lateinit var headerContainer: ViewGroup
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,17 +34,32 @@ class TimetableFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ✅ 메뉴 이동 기능 추가
+        // ✅ 헤더 컨테이너 초기화
+        headerContainer = binding.headerContainer
+
+        // ✅ 메뉴 이동 기능
         binding.btnMenu.setOnClickListener {
             findNavController().navigate(R.id.mainMenuFragment)
         }
 
-        // 초기 데이터 (기본: Route4)
+        // ✅ 초기 데이터 (기본: Route4)
         val initialData = ShuttleRepository().getRoute4()
         adapter = ShuttleAdapter(initialData)
 
-        binding.recyclerViewTimetable.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerViewTimetable.adapter = adapter
+        binding.recyclerViewTimetable.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@TimetableFragment.adapter
+            // ✅ 구분선 추가
+            addItemDecoration(
+                DividerItemDecoration(
+                    requireContext(),
+                    LinearLayoutManager.VERTICAL
+                )
+            )
+        }
+
+        // ✅ 초기 헤더
+        showHeader("special")
 
         // ✅ 선택된 탭 강조 함수
         fun updateSelectedTab(selectedButtonId: Int) {
@@ -63,34 +82,53 @@ class TimetableFragment : Fragment() {
             }
         }
 
-        // 앱 실행 시 초기 선택 탭 (Route4)
+        // ✅ 초기 선택 탭 (Route4)
         updateSelectedTab(binding.tabBtnRoute4.id)
 
-        // 탭 클릭 이벤트: 데이터 업데이트 + 탭 강조
+        // ✅ 탭 클릭 이벤트
         binding.tabBtnRoute1.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute1())
             updateSelectedTab(binding.tabBtnRoute1.id)
+            showHeader("normal")
         }
 
         binding.tabBtnRoute2.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute2())
             updateSelectedTab(binding.tabBtnRoute2.id)
+            showHeader("normal")
         }
 
         binding.tabBtnRoute3.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute3())
             updateSelectedTab(binding.tabBtnRoute3.id)
+            showHeader("special")
         }
 
         binding.tabBtnRoute4.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute4())
             updateSelectedTab(binding.tabBtnRoute4.id)
+            showHeader("special")
         }
 
         binding.tabBtnRoute5.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute5())
             updateSelectedTab(binding.tabBtnRoute5.id)
+            showHeader("normal")
         }
+    }
+
+    // ✅ 헤더 보여주기 함수
+    private fun showHeader(type: String) {
+        headerContainer.removeAllViews()
+
+        val headerLayout = when (type) {
+            "normal" -> R.layout.header_normal
+            "special" -> R.layout.header_special
+            else -> throw IllegalArgumentException("Invalid header type")
+        }
+
+        val headerView = layoutInflater.inflate(headerLayout, headerContainer, false)
+        headerContainer.addView(headerView)
     }
 
     override fun onDestroyView() {
