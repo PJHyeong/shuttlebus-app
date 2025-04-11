@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:gravity="center_vertical"
+    android:baselineAligned="false">
+
+    <!-- 순번 -->
+    <TextView
+        android:id="@+id/textOrder"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="1"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:paddingStart="-4dp"/>
+
+    <!-- 출발 시간 -->
+    <TextView
+        android:id="@+id/textTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:gravity="center"
+        android:text="08:00"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:paddingStart="-4dp"/>
+
+    <!-- 예상 도착 시간 -->
+    <TextView
+        android:id="@+id/textExpectedArrival"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="2"
+        android:gravity="center"
+        android:text="08:30"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:paddingStart="-8dp"/>
+
+    <!-- 알림 버튼 -->
+    <ImageButton
+        android:id="@+id/btnAlarm"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="알림 설정"
+        android:src="@drawable/non_act_bell"
+        android:layout_marginEnd="8dp"
+        android:scaleType="fitCenter"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- 즐겨찾기 버튼 -->
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="즐겨찾기 추가"
+        android:src="@drawable/non_act_star"
+        android:scaleType="fitCenter"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>
