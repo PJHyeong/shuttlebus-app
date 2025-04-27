@@ -4,7 +4,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shuttlebusapplication.R
@@ -19,7 +19,6 @@ class ShuttleAdapter(private var data: List<ShuttleSchedule>) :
     }
 
     override fun getItemViewType(position: Int): Int {
-        // 🧩 특수 노선 (Route 3, 4) 인지 여부를 데이터로 판단
         return if (!data[position].viaTime.isNullOrEmpty()) VIEW_TYPE_SPECIAL else VIEW_TYPE_NORMAL
     }
 
@@ -30,12 +29,10 @@ class ShuttleAdapter(private var data: List<ShuttleSchedule>) :
                 val view = inflater.inflate(R.layout.item_timetable_normal, parent, false)
                 NormalViewHolder(view)
             }
-
             VIEW_TYPE_SPECIAL -> {
                 val view = inflater.inflate(R.layout.item_timetable_special, parent, false)
                 SpecialViewHolder(view)
             }
-
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -60,67 +57,40 @@ class ShuttleAdapter(private var data: List<ShuttleSchedule>) :
         private val textOrder: TextView = itemView.findViewById(R.id.textOrder)
         private val textTime: TextView = itemView.findViewById(R.id.textTime)
         private val textExpectedArrival: TextView = itemView.findViewById(R.id.textExpectedArrival)
-        private val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
-        private val btnFavorite: ImageButton = itemView.findViewById(R.id.btnFavorite)
+        private val switchAlarm: Switch = itemView.findViewById(R.id.switchAlarm)
 
         fun bind(item: ShuttleSchedule, position: Int) {
             textOrder.text = (position + 1).toString()
             textTime.text = item.departureTime
             textExpectedArrival.text = item.expectedArrivalTime ?: "-"
 
-            btnAlarm.setOnClickListener {
-                Log.d("ShuttleAdapter", "🔔 알림 버튼 클릭됨! position = $position")
-                item.isAlarmSet = !item.isAlarmSet
-                btnAlarm.setImageResource(
-                    if (item.isAlarmSet) R.drawable.act_bell else R.drawable.non_act_bell
-                )
-            }
+            // 스위치 초기 상태 설정
+            switchAlarm.isChecked = item.isAlarmSet
 
-            btnFavorite.setOnClickListener {
-                Log.d("ShuttleAdapter", "⭐️ 즐겨찾기 버튼 클릭됨! position = $position")
-                item.isFavorite = !item.isFavorite
-                btnFavorite.setImageResource(
-                    if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-                )
+            switchAlarm.setOnCheckedChangeListener { _, isChecked ->
+                Log.d("ShuttleAdapter", "🔔 알림 스위치 변경됨! position = $position -> $isChecked")
+                item.isAlarmSet = isChecked
             }
         }
     }
 
+    // ✅ 특수 노선용 ViewHolder
     inner class SpecialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textOrder: TextView = itemView.findViewById(R.id.textOrder)
         private val textTime: TextView = itemView.findViewById(R.id.textTime)
         private val textViaTime: TextView = itemView.findViewById(R.id.textViaTime)
-        private val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
-        private val btnFavorite: ImageButton = itemView.findViewById(R.id.btnFavorite)
+        private val switchAlarm: Switch = itemView.findViewById(R.id.switchAlarm)
 
         fun bind(item: ShuttleSchedule, position: Int) {
-            // ✅ 순번 정상 출력
             textOrder.text = (position + 1).toString()
-
-            // ✅ 출발시간 & 경유시간
             textTime.text = item.departureTime
             textViaTime.text = item.viaTime ?: "-"
 
-            // ✅ 초기 이미지 설정
-            btnAlarm.setImageResource(
-                if (item.isAlarmSet) R.drawable.act_bell else R.drawable.non_act_bell
-            )
-            btnFavorite.setImageResource(
-                if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-            )
+            switchAlarm.isChecked = item.isAlarmSet
 
-            btnAlarm.setOnClickListener {
-                item.isAlarmSet = !item.isAlarmSet
-                btnAlarm.setImageResource(
-                    if (item.isAlarmSet) R.drawable.act_bell else R.drawable.non_act_bell
-                )
-            }
-
-            btnFavorite.setOnClickListener {
-                item.isFavorite = !item.isFavorite
-                btnFavorite.setImageResource(
-                    if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-                )
+            switchAlarm.setOnCheckedChangeListener { _, isChecked ->
+                Log.d("ShuttleAdapter", "🔔 알림 스위치 변경됨! position = $position -> $isChecked")
+                item.isAlarmSet = isChecked
             }
         }
     }
