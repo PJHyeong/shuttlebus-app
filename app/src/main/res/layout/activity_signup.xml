@@ -15,27 +15,62 @@
         android:gravity="center"
         android:paddingBottom="24dp">
 
-        <!-- 닉네임 입력 -->
+        <!-- 학번 입력 -->
         <EditText
-            android:id="@+id/etNickname"
+            android:id="@+id/etStudentId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="닉네임을 입력하세요"
+            android:hint="학번을 입력하세요"
+            android:inputType="number"
+            android:maxLength="8"
             android:background="@drawable/edittext_box"
             android:padding="12dp"
             android:textSize="16sp"
-            android:layout_marginBottom="8dp"
-            android:inputType="textPersonName" />
+            android:layout_marginBottom="8dp" />
 
-        <!-- ✨ 추가: 에러 메시지 표시용 텍스트뷰 -->
+        <!-- 학번 에러 메시지 -->
         <TextView
-            android:id="@+id/textNicknameError"
+            android:id="@+id/textStudentIdError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/holo_red_dark"
             android:textSize="14sp"
             android:visibility="gone"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
+
+        <!-- 비밀번호 입력 -->
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="비밀번호를 입력하세요"
+            android:inputType="textPassword"
+            android:background="@drawable/edittext_box"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 비밀번호 재확인 -->
+        <EditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="비밀번호를 다시 입력하세요"
+            android:inputType="textPassword"
+            android:background="@drawable/edittext_box"
+            android:padding="12dp"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 비밀번호 에러 메시지 -->
+        <TextView
+            android:id="@+id/textPasswordError"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp" />
 
         <!-- 푸시 알림 수신 동의 -->
         <LinearLayout
@@ -68,7 +103,8 @@
             android:padding="12dp"
             android:textSize="16sp"
             android:backgroundTint="@color/purple_500"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:enabled="false" />
     </LinearLayout>
 
     <LinearLayout

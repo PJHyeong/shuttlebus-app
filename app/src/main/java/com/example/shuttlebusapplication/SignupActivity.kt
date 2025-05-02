@@ -4,113 +4,99 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.Switch
-import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import android.util.Log
 
 class SignupActivity : AppCompatActivity() {
 
-    private lateinit var etNickname: EditText
-    private lateinit var textNicknameError: TextView
-    private lateinit var btnSignUp: Button
+    private lateinit var etStudentId: EditText
+    private lateinit var etPassword: EditText
+    private lateinit var etConfirmPassword: EditText
+    private lateinit var textStudentIdError: TextView
+    private lateinit var textPasswordError: TextView
     private lateinit var switchPush: Switch
+    private lateinit var btnSignUp: Button
+    private lateinit var btnBackToLogin: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_signup)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        // UI 연결
+        etStudentId = findViewById(R.id.etStudentId)
+        etPassword = findViewById(R.id.etPassword)
+        etConfirmPassword = findViewById(R.id.etConfirmPassword)
+        textStudentIdError = findViewById(R.id.textStudentIdError)
+        textPasswordError = findViewById(R.id.textPasswordError)
+        switchPush = findViewById(R.id.switchPush)
+        btnSignUp = findViewById(R.id.btnSignUp)
+        btnBackToLogin = findViewById(R.id.btnBackToLogin)
+
+        // 🔙 로그인으로 이동
+        btnBackToLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
 
-        etNickname = findViewById(R.id.etNickname)
-        textNicknameError = findViewById(R.id.textNicknameError)
-        btnSignUp = findViewById(R.id.btnSignUp)
-        switchPush = findViewById(R.id.switchPush)
-
-        btnSignUp.isEnabled = false
-
-        // 🔥 닉네임 입력 감시
-        etNickname.addTextChangedListener(object : TextWatcher {
+        // 🔍 입력 필드 감시
+        val textWatcher = object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                validateNickname()
+                validateInput()
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // 🔙 뒤로가기 버튼 (로그인 화면)
-        findViewById<ImageButton>(R.id.btnBackToLogin).setOnClickListener {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
         }
 
-        // ✅ 가입하기 버튼 클릭
+        etStudentId.addTextChangedListener(textWatcher)
+        etPassword.addTextChangedListener(textWatcher)
+        etConfirmPassword.addTextChangedListener(textWatcher)
+
+        // 🔐 가입 버튼 클릭
         btnSignUp.setOnClickListener {
-            val nickname = etNickname.text.toString()
+            val studentId = etStudentId.text.toString()
+            val password = etPassword.text.toString()
             val pushAgree = switchPush.isChecked
 
-            // SharedPreferences에 저장
-            val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-            val editor = prefs.edit()
-            editor.putString("nickname", nickname)
-            editor.putBoolean("pushAgree", pushAgree)
-            editor.apply()
+            Log.d("SignupActivity", "회원가입 완료됨 → 닉네임 입력으로 이동")
+            val intent = Intent(this, NicknameActivity::class.java)
+            intent.putExtra("studentId", studentId)
+            intent.putExtra("password", password)
+            intent.putExtra("pushAgree", pushAgree)
+            startActivity(intent)
 
-            // 🌟 "회원가입 완료" Toast 띄우기
-            Toast.makeText(this, "회원가입이 완료되었습니다!", Toast.LENGTH_SHORT).show()
-
-            // 🌟 로그인 화면으로 이동
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            // ❌ finish() 제거함 — 닉네임 화면이 제대로 뜨도록 하기 위해
         }
     }
 
-    // ✨ 닉네임 유효성 검사
-    private fun validateNickname() {
-        val nickname = etNickname.text.toString()
+    // ✅ 입력값 유효성 검사
+    private fun validateInput() {
+        val studentId = etStudentId.text.toString()
+        val password = etPassword.text.toString()
+        val confirmPassword = etConfirmPassword.text.toString()
 
-        when {
-            nickname.isBlank() -> {
-                textNicknameError.text = "닉네임을 입력해주세요."
-                textNicknameError.visibility = TextView.VISIBLE
-                btnSignUp.isEnabled = false
-            }
-            nickname.contains(" ") -> {
-                textNicknameError.text = "닉네임에 공백을 포함할 수 없습니다."
-                textNicknameError.visibility = TextView.VISIBLE
-                btnSignUp.isEnabled = false
-            }
-            nickname.length < 2 -> {
-                textNicknameError.text = "닉네임은 2자 이상이어야 합니다."
-                textNicknameError.visibility = TextView.VISIBLE
-                btnSignUp.isEnabled = false
-            }
-            nickname.length > 10 -> {
-                textNicknameError.text = "닉네임은 10자 이하로 입력해주세요."
-                textNicknameError.visibility = TextView.VISIBLE
-                btnSignUp.isEnabled = false
-            }
-            nickname.contains(Regex("[^a-zA-Z0-9가-힣]")) -> {
-                textNicknameError.text = "특수문자는 사용할 수 없습니다."
-                textNicknameError.visibility = TextView.VISIBLE
-                btnSignUp.isEnabled = false
-            }
-            else -> {
-                textNicknameError.text = ""
-                textNicknameError.visibility = TextView.GONE
-                btnSignUp.isEnabled = true
-            }
+        var isValid = true
+
+        if (!Regex("^60\\d{6}$").matches(studentId)) {
+            textStudentIdError.text = "학번은 숫자 8자리이며 '60'으로 시작해야 합니다."
+            textStudentIdError.visibility = TextView.VISIBLE
+            isValid = false
+        } else {
+            textStudentIdError.visibility = TextView.GONE
         }
+
+        if (!Regex("^[a-zA-Z0-9]{4,}$").matches(password)) {
+            textPasswordError.text = "비밀번호는 4자 이상, 영어/숫자만 가능합니다."
+            textPasswordError.visibility = TextView.VISIBLE
+            isValid = false
+        } else if (password != confirmPassword) {
+            textPasswordError.text = "비밀번호가 일치하지 않습니다."
+            textPasswordError.visibility = TextView.VISIBLE
+            isValid = false
+        } else {
+            textPasswordError.visibility = TextView.GONE
+        }
+
+        btnSignUp.isEnabled = isValid
     }
 }
