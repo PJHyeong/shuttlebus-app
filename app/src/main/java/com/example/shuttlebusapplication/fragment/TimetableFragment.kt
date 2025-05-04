@@ -44,7 +44,7 @@ class TimetableFragment : Fragment() {
 
         // ✅ 초기 데이터 (기본: Route4)
         val initialData = ShuttleRepository().getRoute4()
-        adapter = ShuttleAdapter(initialData)
+        adapter = ShuttleAdapter(requireContext(), initialData)
 
         binding.recyclerViewTimetable.apply {
             layoutManager = LinearLayoutManager(requireContext())

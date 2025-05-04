@@ -45,6 +45,8 @@ android {
 }
 
 dependencies {
+
+    implementation("com.naver.maps:map-sdk:3.21.0")
     // Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

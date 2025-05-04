@@ -1,25 +1,31 @@
-// ShuttleAdapter.kt
-
 package com.example.shuttlebusapplication.adapter
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Switch
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.model.ShuttleSchedule
 
-class ShuttleAdapter(private var data: List<ShuttleSchedule>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ShuttleAdapter(
+    private val context: Context,
+    private var data: List<ShuttleSchedule>
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
         private const val VIEW_TYPE_NORMAL = 0
         private const val VIEW_TYPE_SPECIAL = 1
+        private const val PREFS_NAME = "AlarmPrefs"
+        private const val MASTER_SWITCH_KEY = "alarm_master_switch"
     }
+
+    private val sharedPrefs: SharedPreferences =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     override fun getItemViewType(position: Int): Int {
         return if (!data[position].viaTime.isNullOrEmpty()) VIEW_TYPE_SPECIAL else VIEW_TYPE_NORMAL
@@ -55,87 +61,62 @@ class ShuttleAdapter(private var data: List<ShuttleSchedule>) :
         notifyDataSetChanged()
     }
 
+    // 🔒 SharedPreferences 저장/불러오기
+    private fun saveAlarmState(position: Int, isChecked: Boolean) {
+        sharedPrefs.edit().putBoolean("alarm_item_$position", isChecked).apply()
+    }
+
+    private fun getAlarmState(position: Int): Boolean {
+        val masterOn = sharedPrefs.getBoolean(MASTER_SWITCH_KEY, true)
+        return if (!masterOn) false else sharedPrefs.getBoolean("alarm_item_$position", false)
+    }
+
+    // ✅ 일반 노선용 ViewHolder
     inner class NormalViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textOrder: TextView = itemView.findViewById(R.id.textOrder)
         private val textTime: TextView = itemView.findViewById(R.id.textTime)
         private val textExpectedArrival: TextView = itemView.findViewById(R.id.textExpectedArrival)
-        private val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
-        private val btnFavorite: ImageButton = itemView.findViewById(R.id.btnFavorite)
+        private val switchAlarm: Switch = itemView.findViewById(R.id.switchAlarm)
 
         fun bind(item: ShuttleSchedule, position: Int) {
             textOrder.text = (position + 1).toString()
             textTime.text = item.departureTime
             textExpectedArrival.text = item.expectedArrivalTime ?: "-"
 
-            val prefs = itemView.context.getSharedPreferences("AlarmPrefs", Context.MODE_PRIVATE)
-            val masterSwitch = prefs.getBoolean("alarm_master_switch", true)
-            val alarmKey = "alarm_enabled_$position"
-            val alarmState = prefs.getBoolean(alarmKey, false)
-            item.isAlarmSet = alarmState
+            val savedState = getAlarmState(position)
+            switchAlarm.isChecked = savedState
+            item.isAlarmSet = savedState
+            switchAlarm.isEnabled = sharedPrefs.getBoolean(MASTER_SWITCH_KEY, true)
 
-            btnAlarm.setImageResource(
-                if (masterSwitch && item.isAlarmSet) R.drawable.act_bell else R.drawable.non_act_bell
-            )
-
-            btnAlarm.setOnClickListener {
-                item.isAlarmSet = !item.isAlarmSet
-                prefs.edit().putBoolean(alarmKey, item.isAlarmSet).apply()
-                btnAlarm.setImageResource(
-                    if (prefs.getBoolean("alarm_master_switch", true) && item.isAlarmSet)
-                        R.drawable.act_bell else R.drawable.non_act_bell
-                )
-                Log.d("ShuttleAdapter", "🔔 알림 버튼 클릭됨! 상태 = ${item.isAlarmSet}, position = $position")
-            }
-
-            btnFavorite.setOnClickListener {
-                item.isFavorite = !item.isFavorite
-                btnFavorite.setImageResource(
-                    if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-                )
+            switchAlarm.setOnCheckedChangeListener { _, isChecked ->
+                item.isAlarmSet = isChecked
+                saveAlarmState(position, isChecked)
+                Log.d("ShuttleAdapter", "🔔 알림 스위치 변경됨! position = $position -> $isChecked")
             }
         }
     }
 
+    // ✅ 특수 노선용 ViewHolder
     inner class SpecialViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val textOrder: TextView = itemView.findViewById(R.id.textOrder)
         private val textTime: TextView = itemView.findViewById(R.id.textTime)
         private val textViaTime: TextView = itemView.findViewById(R.id.textViaTime)
-        private val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
-        private val btnFavorite: ImageButton = itemView.findViewById(R.id.btnFavorite)
+        private val switchAlarm: Switch = itemView.findViewById(R.id.switchAlarm)
 
         fun bind(item: ShuttleSchedule, position: Int) {
             textOrder.text = (position + 1).toString()
             textTime.text = item.departureTime
             textViaTime.text = item.viaTime ?: "-"
 
-            val prefs = itemView.context.getSharedPreferences("AlarmPrefs", Context.MODE_PRIVATE)
-            val masterSwitch = prefs.getBoolean("alarm_master_switch", true)
-            val alarmKey = "alarm_enabled_$position"
-            val alarmState = prefs.getBoolean(alarmKey, false)
-            item.isAlarmSet = alarmState
+            val savedState = getAlarmState(position)
+            switchAlarm.isChecked = savedState
+            item.isAlarmSet = savedState
+            switchAlarm.isEnabled = sharedPrefs.getBoolean(MASTER_SWITCH_KEY, true)
 
-            btnAlarm.setImageResource(
-                if (masterSwitch && item.isAlarmSet) R.drawable.act_bell else R.drawable.non_act_bell
-            )
-
-            btnAlarm.setOnClickListener {
-                item.isAlarmSet = !item.isAlarmSet
-                prefs.edit().putBoolean(alarmKey, item.isAlarmSet).apply()
-                btnAlarm.setImageResource(
-                    if (prefs.getBoolean("alarm_master_switch", true) && item.isAlarmSet)
-                        R.drawable.act_bell else R.drawable.non_act_bell
-                )
-            }
-
-            btnFavorite.setImageResource(
-                if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-            )
-
-            btnFavorite.setOnClickListener {
-                item.isFavorite = !item.isFavorite
-                btnFavorite.setImageResource(
-                    if (item.isFavorite) R.drawable.act_star else R.drawable.non_act_star
-                )
+            switchAlarm.setOnCheckedChangeListener { _, isChecked ->
+                item.isAlarmSet = isChecked
+                saveAlarmState(position, isChecked)
+                Log.d("ShuttleAdapter", "🔔 알림 스위치 변경됨! position = $position -> $isChecked")
             }
         }
     }

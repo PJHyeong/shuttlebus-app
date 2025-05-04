@@ -1,6 +1,7 @@
 package com.example.shuttlebusapplication.fragment
 
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.shuttlebusapplication.R
 
+
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
@@ -20,6 +22,7 @@ class SettingsFragment : Fragment() {
     private var param2: String? = null
     private val PREFS_NAME = "AlarmPrefs"
     private val MASTER_SWITCH_KEY = "alarm_master_switch"
+    private val INDIVIDUAL_PREFIX = "alarm_item_"
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -28,6 +31,7 @@ class SettingsFragment : Fragment() {
         val switchNotification = view.findViewById<Switch>(R.id.switchNotification)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
         val prefs = requireContext().getSharedPreferences(PREFS_NAME, 0)
+
 
         // ⏬ 마스터 스위치 상태 로드
         val isNotificationOn = prefs.getBoolean(MASTER_SWITCH_KEY, true)
@@ -38,15 +42,29 @@ class SettingsFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        // 🔔 스위치 토글 시 전체 알림 마스터 상태 저장
+        // ✅ 마스터 스위치 토글 동작
         switchNotification.setOnCheckedChangeListener { _, isChecked ->
-            prefs.edit().putBoolean(MASTER_SWITCH_KEY, isChecked).apply()
+            val editor = prefs.edit()
+            editor.putBoolean(MASTER_SWITCH_KEY, isChecked)
 
-            val message = if (isChecked) {
-                "알림 서비스를 시작합니다."
+            if (!isChecked) {
+                // 마스터 OFF → 현재 상태를 백업하고 전부 false 처리
+                for (i in 0 until 100) {
+                    val current = prefs.getBoolean("alarm_item_$i", false)
+                    editor.putBoolean("backup_alarm_item_$i", current)
+                    editor.putBoolean("alarm_item_$i", false)
+                }
             } else {
-                "알림 서비스를 종료합니다."
+                // 마스터 ON → 백업된 값을 복구
+                for (i in 0 until 100) {
+                    val backedUp = prefs.getBoolean("backup_alarm_item_$i", false)
+                    editor.putBoolean("alarm_item_$i", backedUp)
+                }
             }
+
+            editor.apply()
+
+            val message = if (isChecked) "알림 서비스를 시작합니다." else "알림 서비스를 종료합니다."
             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
         }
 
