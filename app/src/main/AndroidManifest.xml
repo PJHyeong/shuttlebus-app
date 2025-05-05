@@ -47,5 +47,9 @@
             android:name=".MainActivity"
             android:exported="true" />
 
+        <meta-data
+            android:name="com.naver.maps.map.NCP_KEY_ID"
+            android:value="mw2k7g2tym" />
+
     </application>
 </manifest>
