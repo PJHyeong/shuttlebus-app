@@ -45,6 +45,7 @@ android {
 }
 
 dependencies {
+    implementation("com.naver.maps:map-sdk:3.21.0")
     // Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
 
     // Navigation (Compose 또는 Fragment 방식 둘 다 사용 가능)
     val nav_version = "2.8.9"
