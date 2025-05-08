@@ -73,10 +73,8 @@ dependencies {
     // Retrofit (jw)
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
     // OkHttp 로깅 (jw)
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
-
     // 코루틴 지원 (Retrofit의 suspend 함수용) (jw)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
     // Lifecycle KTX (lifecycleScope)

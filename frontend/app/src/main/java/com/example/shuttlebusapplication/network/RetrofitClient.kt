@@ -6,7 +6,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://YOUR_SERVER_IP:3000/"
+    private const val BASE_URL = "http://10.0.2.2:5000/"
+    // 테스트 환경이 바뀔떄마다 base url 변경 필요
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BASIC

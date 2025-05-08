@@ -23,6 +23,8 @@ import com.naver.maps.map.OnMapReadyCallback
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import kotlinx.coroutines.launch
+import com.naver.maps.map.overlay.PolylineOverlay
+import android.graphics.Color
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -42,6 +44,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var param2: String? = null
     private lateinit var mapView: MapView
     private var naverMap: NaverMap? = null  // 맵 참조 저장
+    private lateinit var routeLine: PolylineOverlay
 
     // 1) 폴링용 핸들러와 Runnable
     private val handler = Handler(Looper.getMainLooper())
@@ -112,6 +115,33 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             LatLng(37.2195, 127.1836) to "제3공학관"
         )
 
+        val buslocations = listOf(
+            LatLng(37.2195, 127.1836) , // 3공
+            LatLng(37.220252, 127.186613) , // 3공 -> 명진
+            LatLng(37.221042, 127.186816) , // 3공 -> 명진
+            LatLng(37.221343, 127.187862) , // 함박앞
+            LatLng(37.222043, 127.189143) ,
+            LatLng(37.223287, 127.188026) ,
+            LatLng(37.224392, 127.187806) , // 학교정문
+            LatLng(37.224212, 127.187576) , // 기점
+            LatLng(37.224392, 127.187806) , // 학교정문
+            LatLng(37.224973, 127.187808) , //학교앞 로터리
+            LatLng(37.225849, 127.187947) , //삼거리
+            LatLng(37.228031, 127.187671) , // 고가밑
+            LatLng(37.236138, 127.189164) , //명지대입구사거리
+            LatLng(37.238266, 127.189874) , // 명지대역사거리
+            LatLng(37.238731, 127.186211) , // 좌회전
+            LatLng(37.236948, 127.185178) , // 우회전
+            LatLng(37.236138, 127.189164) , //명지대입구사거리
+        )
+
+        val routeLine = PolylineOverlay().apply {
+            coords = buslocations                    // 경로 좌표
+            color  = Color.BLUE                     // 파란색 선 :contentReference[oaicite:0]{index=0}
+            width  = 15                              // 선 굵기 8px :contentReference[oaicite:1]{index=1}
+            map    = naverMap                       // 지도에 추가
+        }
+
         locations.forEach { (location, title) ->
             val marker = Marker()
             marker.position = location
@@ -150,12 +180,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         busMarker = Marker().apply {
             // 초기엔 지도가 표시하는 곳(예: 사무소 정류장)으로 세팅
             position = LatLng(37.2242, 127.1876)
-            icon = OverlayImage.fromResource(R.drawable.bus_marker)
+            icon = OverlayImage.fromResource(R.drawable.mjbusicon)
             map = naverMap
         }
 
         // 카메라는 움직이지 않고 마커만 따라가려면 주석 처리
-        naverMap.moveCamera(CameraUpdate.scrollTo(busMarker.position))
+        // naverMap.moveCamera(CameraUpdate.scrollTo(busMarker.position))
 
         // --- 폴링 시작 ---
         startPolling(naverMap)
@@ -174,7 +204,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         busMarker.position = newPos
 
                         // 카메라도 함께 이동하고 싶으면 아래 주석 해제
-                        naverMap.moveCamera(CameraUpdate.scrollTo(newPos))
+                        // naverMap.moveCamera(CameraUpdate.scrollTo(newPos))
 
                     } catch (e: Exception) {
                         Log.e("MapDebug", "폴링 중 에러", e)
