@@ -16,6 +16,14 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
 
     private var stationName: String? = null
 
+    // 🚍 정류장별로 도착 가능한 셔틀 이름만 매핑
+    private val stationToShuttles = mapOf(
+        "명진당" to listOf("명지대역 셔틀"),
+        "역북동행정복지센터 앞" to listOf("명지대역 셔틀", "시내셔틀"),
+        "이마트.상공회의소 건너편" to listOf("명지대역 셔틀", "시내셔틀"),
+        // 필요하면 다른 정류장도 추가
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         stationName = arguments?.getString(ARG_STATION_NAME)
@@ -27,28 +35,31 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_station_info_bottom_sheet, container, false)
 
-        view.findViewById<TextView>(R.id.textStationTitle).text = stationName ?: "정류장 정보 없음"
+        val title = view.findViewById<TextView>(R.id.textStationTitle)
+        val stopName = stationName ?: "정류장 정보 없음"
+        title.text = stopName
 
-        // 📍 구조화된 더미 데이터
-        val dummyArrivalList = listOf(
+        // 🚍 모든 더미 셔틀 정보
+        val allShuttles = listOf(
             ArrivalInfo("명지대역 셔틀", 5),
-            ArrivalInfo("새내셔틀", 2),
+            ArrivalInfo("시내셔틀", 2),
             ArrivalInfo("기흥셔틀", 7)
         )
 
+        // ✅ 현재 정류장에 도착 가능한 셔틀만 필터링
+        val allowedShuttles = stationToShuttles[stopName].orEmpty()
+        val filteredShuttles = allShuttles.filter { it.name in allowedShuttles }
+
         // 🔔 곧 도착 셔틀 탐색 (2분 이하)
-        val arrivingSoon = dummyArrivalList.firstOrNull { it.minutesLeft <= 2 }
-        val arrivingSoonText = if (arrivingSoon != null) {
-            "곧 도착: ${arrivingSoon.name} (잠시 후 도착)"
-        } else {
-            "곧 도착 셔틀 없음"
-        }
+        val arrivingSoon = filteredShuttles.firstOrNull { it.minutesLeft <= 2 }
+        val arrivingSoonText = arrivingSoon?.let {
+            "곧 도착: ${it.name} (잠시 후 도착)"
+        } ?: "곧 도착 셔틀 없음"
         view.findViewById<TextView>(R.id.textArrivingSoon).text = arrivingSoonText
 
-        // 📋 도착 예정 셔틀 리스트
         val containerArrival = view.findViewById<LinearLayout>(R.id.containerArrivalList)
-        dummyArrivalList
-            .filter { it != arrivingSoon } // 이미 '곧 도착'으로 표시된 것은 제외
+        filteredShuttles
+            .filter { it != arrivingSoon }
             .forEach { info ->
                 val itemView = inflater.inflate(R.layout.item_arrival_bus, containerArrival, false)
 
@@ -67,10 +78,14 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                     btnAlarm.setImageResource(icon)
                 }
 
+                // ✅ 명지대역 셔틀만 상세 화면 이동 가능
                 itemView.setOnClickListener {
-                    val intent = Intent(requireContext(), RouteDetailActivity::class.java)
-                    intent.putExtra("shuttleName", info.name)
-                    startActivity(intent)
+                    if (info.name == "명지대역 셔틀") {
+                        val intent = Intent(requireContext(), RouteDetailActivity::class.java)
+                        intent.putExtra("shuttleName", info.name)
+                        dismiss()
+                        startActivity(intent)
+                    }
                 }
 
                 containerArrival.addView(itemView)
@@ -84,8 +99,9 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
 
         fun newInstance(stationName: String): StationInfoBottomSheetFragment {
             val fragment = StationInfoBottomSheetFragment()
-            val args = Bundle()
-            args.putString(ARG_STATION_NAME, stationName)
+            val args = Bundle().apply {
+                putString(ARG_STATION_NAME, stationName)
+            }
             fragment.arguments = args
             return fragment
         }

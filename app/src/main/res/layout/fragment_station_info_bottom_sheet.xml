@@ -34,6 +34,8 @@
             android:textSize="16sp"
             android:textColor="#D32F2F"
             android:layout_marginBottom="8dp"
+            android:clickable="true"
+            android:focusable="true"
             tools:text="곧 도착 버스: 명지대역 셔틀" />
 
         <!-- 도착 예정 버스 목록 -->

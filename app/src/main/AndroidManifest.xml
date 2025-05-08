@@ -52,6 +52,11 @@
             android:name=".MainActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".RouteDetailActivity"
+            android:exported="false" />
+
+
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="mw2k7g2tym" />
