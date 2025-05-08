@@ -7,6 +7,7 @@
             <br>
             <p>$\huge{\rm{\color{#DD6565} \ Frontend }}$</p>
             <p>$\it{{\color{#5ad7b7} 셔틀버스\ 마커\ 업데이트\ (Mapfragment,\ network)\ retrofit를\ 사용해\ 지도에\ 연동\ 완료\ ( 5월 1주차 )}}$</p>
+            <p>$\it{{\color{#5ad7b7} 셔틀버스\ 경로\ 폴리라인\ 추가\ ( 5월 2주차 )}}$</p>
 
 </div>
 
