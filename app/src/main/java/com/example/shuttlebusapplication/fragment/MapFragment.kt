@@ -3,16 +3,15 @@ package com.example.shuttlebusapplication.fragment
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import com.example.shuttlebusapplication.R
+import com.example.shuttlebusapplication.fragment.StationInfoBottomSheetFragment
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.overlay.PolylineOverlay
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -20,8 +19,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var busMarker: Marker
     private val handler = Handler(Looper.getMainLooper())
     private var currentIndex = 0
-
-    private val pollingInterval = 3000L // 3초 간격 이동
+    private val pollingInterval = 3000L
     private lateinit var routeLine: PolylineOverlay
 
     private val busRouteCoordinates = listOf(
@@ -56,10 +54,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(naverMap: NaverMap) {
-        // 지도 초기 위치 설정
         naverMap.moveCamera(CameraUpdate.scrollTo(busRouteCoordinates[0]))
 
-        // 🔹 경로 선 그리기
+        // 🟦 경로 선 표시
         routeLine = PolylineOverlay().apply {
             coords = busRouteCoordinates
             color = android.graphics.Color.BLUE
@@ -67,21 +64,20 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             map = naverMap
         }
 
-        // 🔸 실시간 버스 마커
+        // 🚌 실시간 버스 마커
         busMarker = Marker().apply {
             position = busRouteCoordinates[0]
             icon = OverlayImage.fromResource(R.drawable.bus_icon)
             map = naverMap
         }
 
-        // 🔹 정류장 마커 + 팝업
-        val popupStops = setOf("역북동행정복지센터 앞", "이마트.상공회의소 건너편", "명진당")
+        // 📍 정류장 마커 + 팝업 연결 (모든 정류장 대상)
         val locations = listOf(
             LatLng(37.2242, 127.1876) to "버스관리사무소 정류장 (기점)",
-            LatLng(37.2305, 127.1881) to "이마트.상공회의소 앞",
+            LatLng(37.2305, 127.1881) to "이마트 상공회의소 앞",
             LatLng(37.234, 127.1888) to "역북동행정복지센터 건너편",
             LatLng(37.234, 127.1886) to "역북동행정복지센터 앞",
-            LatLng(37.2313, 127.1882) to "이마트.상공회의소 건너편",
+            LatLng(37.2313, 127.1882) to "이마트 상공회의소 건너편",
             LatLng(37.2223, 127.1889) to "명진당",
             LatLng(37.2195, 127.1836) to "제3공학관"
         )
@@ -94,20 +90,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 map = naverMap
             }
 
-            if (popupStops.contains(title)) {
-                marker.setOnClickListener {
-                    val cameraUpdate = CameraUpdate.scrollAndZoomTo(location, 17.0)
-                        .animate(CameraAnimation.Easing)
-                    naverMap.moveCamera(cameraUpdate)
-
-                    val bottomSheet = StationInfoBottomSheetFragment.newInstance(title)
-                    bottomSheet.show(parentFragmentManager, "StationInfoBottomSheet")
-                    true
-                }
+            // ✅ 모든 마커에서 팝업 연결
+            marker.setOnClickListener {
+                naverMap.moveCamera(
+                    CameraUpdate.scrollAndZoomTo(location, 17.0).animate(CameraAnimation.Easing)
+                )
+                val bottomSheet = StationInfoBottomSheetFragment.newInstance(title)
+                bottomSheet.show(parentFragmentManager, "StationInfoBottomSheet")
+                true
             }
         }
 
-        // 🔁 시작 위치에서 폴링 시작
+        // 🌀 버스 움직임 시작
         startPolling()
     }
 
