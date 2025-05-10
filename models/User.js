@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 
 //User 스키마 작성
 const userSchema = new mongoose.Schema({
-  email: {type: String, required: true, unique: true},
+  studentid: {type: String, required: true, unique: true},
   password: {type: String, required: true},
   name: {type: String, required: true},
 });
