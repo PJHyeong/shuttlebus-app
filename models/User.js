@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   password: {type: String, required: true},
   name: {type: String, required: true},
 });
-
+ 
 
 //bcrypt 라이브러리 사용
 //비밀번호 암호화 - 회원가입 시 비밀번호를 해시화하여 저장
