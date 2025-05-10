@@ -12,6 +12,7 @@ import android.widget.Switch
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.shuttlebusapplication.R
+import androidx.navigation.fragment.findNavController
 
 
 private const val ARG_PARAM1 = "param1"
@@ -27,20 +28,21 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val btnBack = view.findViewById<LinearLayout>(R.id.btnBack)
         val switchNotification = view.findViewById<Switch>(R.id.switchNotification)
         val btnLogout = view.findViewById<Button>(R.id.btnLogout)
         val prefs = requireContext().getSharedPreferences(PREFS_NAME, 0)
+
+        val btnMenu = view.findViewById<View>(R.id.btnMenu)
+        btnMenu.setOnClickListener {
+            val navController = findNavController()
+            navController.navigate(R.id.mainMenuFragment)
+        }
 
 
         // ⏬ 마스터 스위치 상태 로드
         val isNotificationOn = prefs.getBoolean(MASTER_SWITCH_KEY, true)
         switchNotification.isChecked = isNotificationOn
 
-        // ⬅ 뒤로가기 버튼
-        btnBack.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
 
         // ✅ 마스터 스위치 토글 동작
         switchNotification.setOnCheckedChangeListener { _, isChecked ->

@@ -12,6 +12,7 @@ import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.overlay.PolylineOverlay
+import androidx.navigation.fragment.findNavController
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -48,6 +49,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     ): View = inflater.inflate(R.layout.fragment_map, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // 메뉴 버튼 연결
+        view.findViewById<View>(R.id.btnMenu)?.setOnClickListener {
+            findNavController().navigate(R.id.mainMenuFragment)
+        }
+
         mapView = view.findViewById(R.id.navermap_map_view)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
@@ -56,7 +62,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(naverMap: NaverMap) {
         naverMap.moveCamera(CameraUpdate.scrollTo(busRouteCoordinates[0]))
 
-        // 🟦 경로 선 표시
+        // 경로 라인
         routeLine = PolylineOverlay().apply {
             coords = busRouteCoordinates
             color = android.graphics.Color.BLUE
@@ -64,14 +70,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             map = naverMap
         }
 
-        // 🚌 실시간 버스 마커
+        // 버스 마커
         busMarker = Marker().apply {
             position = busRouteCoordinates[0]
             icon = OverlayImage.fromResource(R.drawable.bus_icon)
             map = naverMap
         }
 
-        // 📍 정류장 마커 + 팝업 연결 (모든 정류장 대상)
+        // 정류장 마커 + 팝업
         val locations = listOf(
             LatLng(37.2242, 127.1876) to "버스관리사무소 정류장 (기점)",
             LatLng(37.2305, 127.1881) to "이마트 상공회의소 앞",
@@ -90,18 +96,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 map = naverMap
             }
 
-            // ✅ 모든 마커에서 팝업 연결
             marker.setOnClickListener {
-                naverMap.moveCamera(
-                    CameraUpdate.scrollAndZoomTo(location, 17.0).animate(CameraAnimation.Easing)
-                )
-                val bottomSheet = StationInfoBottomSheetFragment.newInstance(title)
-                bottomSheet.show(parentFragmentManager, "StationInfoBottomSheet")
+                naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(location, 17.0).animate(CameraAnimation.Easing))
+                StationInfoBottomSheetFragment.newInstance(title)
+                    .show(parentFragmentManager, "StationInfoBottomSheet")
                 true
             }
         }
 
-        // 🌀 버스 움직임 시작
         startPolling()
     }
 
@@ -109,11 +111,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         handler.postDelayed(object : Runnable {
             override fun run() {
                 if (!::busMarker.isInitialized) return
-
                 currentIndex = (currentIndex + 1) % busRouteCoordinates.size
-                val newPos = busRouteCoordinates[currentIndex]
-                busMarker.position = newPos
-
+                busMarker.position = busRouteCoordinates[currentIndex]
                 handler.postDelayed(this, pollingInterval)
             }
         }, pollingInterval)

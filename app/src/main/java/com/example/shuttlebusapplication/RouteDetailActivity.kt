@@ -17,9 +17,11 @@ class RouteDetailActivity : AppCompatActivity() {
         val stationList = intent.getStringArrayListExtra("stationList") ?: listOf()
         val shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
 
+        // 제목 설정
         val titleText = findViewById<TextView?>(R.id.textRouteTitle)
         titleText?.text = shuttleName
 
+        // 정류장 목록 표시
         stationList.forEachIndexed { index, stationName ->
             val itemLayout = layoutInflater.inflate(R.layout.item_station_line, stationContainer, false)
 
@@ -29,12 +31,18 @@ class RouteDetailActivity : AppCompatActivity() {
 
             text.text = stationName
 
-            // 🚍 버스 위치 예시: index == 3이면 버스 표시
+            // 예시: 버스 마커 표시 (index == 3일 때만 보이게)
             if (index == 3 && busIcon != null) {
                 busIcon.visibility = View.VISIBLE
             }
 
             stationContainer.addView(itemLayout)
+        }
+
+        // 하단 뒤로가기 버튼
+        val btnBack = findViewById<View>(R.id.btnBackToBottomSheet)
+        btnBack.setOnClickListener {
+            finish() // 팝업은 다시 지도를 눌러 띄우는 UX로 처리
         }
     }
 }
