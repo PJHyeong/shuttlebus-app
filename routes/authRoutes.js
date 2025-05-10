@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 
-//회원가입
+//회원가입 
 router.post("/register", async (req, res) => {
   try {
       const { studentid, password, name } = req.body;
