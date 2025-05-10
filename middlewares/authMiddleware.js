@@ -7,7 +7,7 @@ async function authenticationToken(req, res, next) {
     const token = req.headers['authorization']?.split(' ')[1]; // Bearer 토큰에서 실제 토큰 추출
     if (!token) return res.sendStatus(401); // 토큰이 없으면 인증 실패
 
-    try {
+    try { 
         const decoded = jwt.verify(token, process.env.JWT_SECRET); // 토큰 검증
         const user= await User.findById(decoded.id); // 사용자 정보 조회
         if (!user) return res.sendStatus(403); // 사용자 정보가 없으면 인증 실패
