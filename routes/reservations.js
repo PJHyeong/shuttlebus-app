@@ -10,4 +10,4 @@ router.post('/', async (req, res) => {  // 예약 생성
     res.send({message: '예약이 완료되었습니다.'});
 });
 
-module.exports = router;
+module.exports = router; 
