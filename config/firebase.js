@@ -5,4 +5,4 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)   // Firebase Admin SDK 초기화
 });
 
-module
+module.exports = admin; 
