@@ -12,5 +12,5 @@ async function sendPushNotification(fcmToken, title, body) { // 푸시 알림 �
         console.error('푸시 알림 전송 실패:', error);
     }
 }
-
+ 
 module.exports = { sendPushNotification };
