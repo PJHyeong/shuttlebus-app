@@ -9,7 +9,7 @@ const { authenticationToken, requireAdmin } = require('../middlewares/authMiddle
 router.get('/', async (req, res) => {   // 공지사항 목록 조회
     const notices = await Notice.find().sort({ createdAt: -1 }); // 최신 공지사항이 위에 오도록 정렬
     res.send(notices);
-});
+}); 
 
 
 
