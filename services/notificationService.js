@@ -13,4 +13,4 @@ async function sendPushNotification(fcmToken, title, body) { // 푸시 알림 �
     }
 }
  
-module.exports = { sendPushNotification };
+module.exports = { sendPushNotification }; 
