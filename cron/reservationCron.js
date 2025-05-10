@@ -5,7 +5,7 @@ const {sendNotification} = require('./services/notificationService');
 
 
 cron.schedule('* * * * *', async () => {
-    const now = new Date();
+    const now = new Date(); 
     const reservations = await Reservation.find({
         arrivalTime: {$lte: new Date(now.getTime() + 60000)} // 1분 전 예약
     });
