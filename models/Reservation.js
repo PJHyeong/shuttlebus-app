@@ -6,4 +6,4 @@ const reservationSchema = new mongoose.Schema({ // 예약 스키마
     arrivalTime: Date
 });
 
-module.exports = mongoose.model('Reservation', reservationSchema);
+module.exports = mongoose.model('Reservation', reservationSchema); 
