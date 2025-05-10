@@ -16,5 +16,5 @@ cron.schedule('* * * * *', async () => {
             await sendNotification(user.fcmToken, '셔틀 알림', `${res.stopName}에 곧 도착합니다.`);
         }
         await Reservation.findByIdAndDelete(res._id); // 한 번 알림 후 삭제
-    }
+    } 
 });
