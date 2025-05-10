@@ -12,6 +12,7 @@ import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import android.widget.Toast
+import androidx.navigation.fragment.findNavController
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -67,6 +68,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val btnMenu = view.findViewById<View>(R.id.btnMenu)
+        btnMenu.setOnClickListener {
+            val navController = findNavController()
+            navController.navigate(R.id.mainMenuFragment)
+        }
 
         // MapView 초기화
         mapView = view.findViewById(R.id.navermap_map_view)

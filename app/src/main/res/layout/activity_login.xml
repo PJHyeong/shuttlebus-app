@@ -53,7 +53,7 @@
         android:id="@+id/find_account"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="아이디 찾기 | 비밀번호 찾기\n회원가입"
+        android:text="회원가입"
         android:textSize="12sp"
         android:textColor="#666666"
         android:gravity="center"
