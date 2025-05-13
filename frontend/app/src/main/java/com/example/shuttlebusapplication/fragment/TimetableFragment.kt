@@ -1,9 +1,12 @@
 package com.example.shuttlebusapplication.fragment
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -11,7 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.adapter.ShuttleAdapter
 import com.example.shuttlebusapplication.databinding.FragmentTimetableBinding
+import com.example.shuttlebusapplication.model.ShuttleSchedule
+import com.example.shuttlebusapplication.AlarmReceiver
 import com.example.shuttlebusapplication.repository.ShuttleRepository
+import java.text.SimpleDateFormat
+import java.util.*
 
 class TimetableFragment : Fragment() {
 
@@ -19,8 +26,6 @@ class TimetableFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var adapter: ShuttleAdapter
-
-    // ✅ 헤더 뷰를 담을 ViewGroup
     private lateinit var headerContainer: ViewGroup
 
     override fun onCreateView(
@@ -32,103 +37,123 @@ class TimetableFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // ✅ 헤더 컨테이너 초기화
         headerContainer = binding.headerContainer
 
-        // ✅ 메뉴 이동 기능
         binding.btnMenu.setOnClickListener {
             findNavController().navigate(R.id.mainMenuFragment)
         }
 
-        // ✅ 초기 데이터 (기본: Route4)
-        val initialData = ShuttleRepository().getRoute4()
-        adapter = ShuttleAdapter(initialData)
-
+        // 초기 데이터 로드 (4번 노선)
+        adapter = ShuttleAdapter(ShuttleRepository().getRoute4(), requireContext())
         binding.recyclerViewTimetable.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@TimetableFragment.adapter
-            // ✅ 구분선 추가
             addItemDecoration(
-                DividerItemDecoration(
-                    requireContext(),
-                    LinearLayoutManager.VERTICAL
-                )
+                DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL)
             )
         }
 
-        // ✅ 초기 헤더
         showHeader("special")
-
-        // ✅ 선택된 탭 강조 함수
-        fun updateSelectedTab(selectedButtonId: Int) {
-            val tabButtons = listOf(
-                binding.tabBtnRoute1,
-                binding.tabBtnRoute2,
-                binding.tabBtnRoute3,
-                binding.tabBtnRoute4,
-                binding.tabBtnRoute5
-            )
-
-            tabButtons.forEach { button ->
-                if (button.id == selectedButtonId) {
-                    button.setBackgroundColor(resources.getColor(R.color.purple_500, null))
-                    button.setTextColor(resources.getColor(R.color.white, null))
-                } else {
-                    button.setBackgroundColor(resources.getColor(R.color.tab_unselected, null))
-                    button.setTextColor(resources.getColor(R.color.black, null))
-                }
-            }
-        }
-
-        // ✅ 초기 선택 탭 (Route4)
         updateSelectedTab(binding.tabBtnRoute4.id)
 
-        // ✅ 탭 클릭 이벤트
         binding.tabBtnRoute1.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute1())
-            updateSelectedTab(binding.tabBtnRoute1.id)
+            updateSelectedTab(it.id)
             showHeader("normal")
         }
-
         binding.tabBtnRoute2.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute2())
-            updateSelectedTab(binding.tabBtnRoute2.id)
+            updateSelectedTab(it.id)
             showHeader("normal")
         }
-
         binding.tabBtnRoute3.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute3())
-            updateSelectedTab(binding.tabBtnRoute3.id)
+            updateSelectedTab(it.id)
             showHeader("special")
         }
-
         binding.tabBtnRoute4.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute4())
-            updateSelectedTab(binding.tabBtnRoute4.id)
+            updateSelectedTab(it.id)
             showHeader("special")
         }
-
         binding.tabBtnRoute5.setOnClickListener {
             adapter.updateData(ShuttleRepository().getRoute5())
-            updateSelectedTab(binding.tabBtnRoute5.id)
+            updateSelectedTab(it.id)
             showHeader("normal")
         }
     }
 
-    // ✅ 헤더 보여주기 함수
+    private fun updateSelectedTab(selectedButtonId: Int) {
+        val buttons = listOf(
+            binding.tabBtnRoute1,
+            binding.tabBtnRoute2,
+            binding.tabBtnRoute3,
+            binding.tabBtnRoute4,
+            binding.tabBtnRoute5
+        )
+        buttons.forEach { btn ->
+            val isSelected = btn.id == selectedButtonId
+            btn.setBackgroundColor(
+                resources.getColor(
+                    if (isSelected) R.color.purple_500 else R.color.tab_unselected,
+                    null
+                )
+            )
+            btn.setTextColor(
+                resources.getColor(
+                    if (isSelected) R.color.white else R.color.black,
+                    null
+                )
+            )
+        }
+    }
+
     private fun showHeader(type: String) {
         headerContainer.removeAllViews()
-
-        val headerLayout = when (type) {
-            "normal" -> R.layout.header_normal
+        val layoutRes = when (type) {
+            "normal"  -> R.layout.header_normal
             "special" -> R.layout.header_special
-            else -> throw IllegalArgumentException("Invalid header type")
+            else      -> throw IllegalArgumentException("잘못된 헤더 타입")
         }
-
-        val headerView = layoutInflater.inflate(headerLayout, headerContainer, false)
+        val headerView = layoutInflater.inflate(layoutRes, headerContainer, false)
         headerContainer.addView(headerView)
+    }
+
+    /** 🚨 알림 예약 (출발 3분 전) */
+    private fun scheduleAlarm(shuttle: ShuttleSchedule) {
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val now = Calendar.getInstance()
+
+        try {
+            val departureDate = sdf.parse(shuttle.departureTime) ?: throw IllegalArgumentException()
+            val cal = Calendar.getInstance().apply {
+                time = departureDate
+                set(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH))
+                add(Calendar.MINUTE, -3)
+            }
+
+            if (cal.before(now)) {
+                Toast.makeText(context, "이미 지난 시간입니다.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val intent = Intent(requireContext(), AlarmReceiver::class.java).apply {
+                putExtra("shuttleName", shuttle.shuttleName)
+                putExtra("departureTime", shuttle.departureTime)
+            }
+            val requestCode = (shuttle.shuttleName + shuttle.departureTime).hashCode()
+            val pending = PendingIntent.getBroadcast(
+                requireContext(), requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            val am = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            am.setExact(AlarmManager.RTC_WAKEUP, cal.timeInMillis, pending)
+
+            Toast.makeText(context, "알림이 예약되었습니다.", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "시간 파싱 오류", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {

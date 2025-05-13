@@ -46,6 +46,7 @@ android {
 
 dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     // Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -70,16 +71,15 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    // Retrofit (jw)
+    // Retrofit
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    // OkHttp 로깅 (jw)
+    // OkHttp 로깅
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.0")
-    // 코루틴 지원 (Retrofit의 suspend 함수용) (jw)
+    // 코루틴 지원 (Retrofit의 suspend 함수용)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
     // Lifecycle KTX (lifecycleScope)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
-
 
     // 테스트
     testImplementation(libs.junit)

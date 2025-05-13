@@ -9,46 +9,40 @@ import android.view.View
 
 class RouteDetailActivity : AppCompatActivity() {
 
-    data class StationInfo(
-        val name: String,
-        val hasBus: Boolean = false // 향후 실시간 위치 기반 마커 표시 용도
-    )
-
-    private val stationList = listOf(
-        StationInfo("채플관 앞"),
-        StationInfo("이마트 상공회의소 앞"),
-        StationInfo("역북동 행정복지센터 건너편"),
-        StationInfo("명지대역 사거리", hasBus = true),  // 예: 이 정류장에 버스가 있다고 가정
-        StationInfo("역북동 행정복지센터 앞"),
-        StationInfo("이마트 상공회의소 건너편"),
-        StationInfo("명진당"),
-        StationInfo("제3공학관")
-    )
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_route_detail)
 
         val stationContainer = findViewById<LinearLayout>(R.id.stationListContainer)
+        val stationList = intent.getStringArrayListExtra("stationList") ?: listOf()
+        val shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
 
-        stationList.forEachIndexed { index, station ->
+        // 제목 설정
+        val titleText = findViewById<TextView?>(R.id.textRouteTitle)
+        titleText?.text = shuttleName
+
+        // 정류장 목록 표시
+        stationList.forEachIndexed { index, stationName ->
             val itemLayout = layoutInflater.inflate(R.layout.item_station_line, stationContainer, false)
 
             val dot = itemLayout.findViewById<ImageView>(R.id.dot)
             val text = itemLayout.findViewById<TextView>(R.id.textStationName)
-            val busIcon = itemLayout.findViewById<ImageView?>(R.id.busMarker) // 선택사항
+            val busIcon = itemLayout.findViewById<ImageView?>(R.id.busMarker)
 
-            text.text = station.name
+            text.text = stationName
 
-            // 🚍 버스 마커 표시 (임시 예시)
-            if (station.hasBus && busIcon != null) {
+            // 예시: 버스 마커 표시 (index == 3일 때만 보이게)
+            if (index == 3 && busIcon != null) {
                 busIcon.visibility = View.VISIBLE
             }
 
-            // 선 끊김 조절: 첫 줄은 위 선 X, 마지막은 아래 선 X (추후 UI 처리 가능)
-            // 현재는 View 자체를 나누지 않았지만, 필요 시 위아래 선을 분리해서 조절 가능
-
             stationContainer.addView(itemLayout)
+        }
+
+        // 하단 뒤로가기 버튼
+        val btnBack = findViewById<View>(R.id.btnBackToBottomSheet)
+        btnBack.setOnClickListener {
+            finish() // 팝업은 다시 지도를 눌러 띄우는 UX로 처리
         }
     }
 }

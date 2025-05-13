@@ -20,21 +20,26 @@
             android:layout_gravity="center"
             android:layout_marginBottom="24dp" />
 
-        <View
-            android:layout_width="2dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:background="#CCCCCC" />
-
         <LinearLayout
             android:id="@+id/stationListContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp">
-            <!-- 여기에 정류장들 동적 추가 예정 -->
-        </LinearLayout>
+            android:layout_marginBottom="24dp" />
 
+        <!-- ✅ 이미지 버튼 -->
+        <ImageButton
+            android:id="@+id/btnBackToBottomSheet"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/previous_img"
+            android:contentDescription="팝업으로 돌아가기"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 </ScrollView>

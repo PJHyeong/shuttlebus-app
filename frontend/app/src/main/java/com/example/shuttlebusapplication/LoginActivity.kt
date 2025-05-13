@@ -23,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         val findAccountTextView = findViewById<TextView>(R.id.find_account)
-        val fullText = "아이디 찾기 | 비밀번호 찾기\n회원가입"
+        val fullText = "회원가입"
         val spannableString = SpannableString(fullText)
 
 
@@ -39,19 +39,6 @@ class LoginActivity : AppCompatActivity() {
         val signupStart = fullText.indexOf("회원가입")
         val signupEnd = signupStart + "회원가입".length
 
-        // "아이디 찾기" 클릭 이벤트
-        spannableString.setSpan(object : ClickableSpan() {
-            override fun onClick(widget: View) {
-                Toast.makeText(this@LoginActivity, "아이디 찾기 시작", Toast.LENGTH_SHORT).show()
-            }
-        }, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) // "아이디 찾기"
-
-        // "비밀번호 찾기" 클릭 이벤트
-        spannableString.setSpan(object : ClickableSpan() {
-            override fun onClick(widget: View) {
-                Toast.makeText(this@LoginActivity, "비밀번호 찾기 시작", Toast.LENGTH_SHORT).show()
-            }
-        }, 9, 15, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) // "비밀번호 찾기"
 
         spannableString.setSpan(object : ClickableSpan() {
             override fun onClick(widget: View) {

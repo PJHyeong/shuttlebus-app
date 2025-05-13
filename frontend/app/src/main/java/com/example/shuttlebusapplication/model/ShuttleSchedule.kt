@@ -7,5 +7,6 @@ data class ShuttleSchedule(
     val viaTime: String? = null,
     val vehicleCount: Int? = null,
     var isFavorite: Boolean = false,
-    var isAlarmSet: Boolean = false
+    var isAlarmSet: Boolean = false,
+    var shuttleName: String = "기본노선"
 )
