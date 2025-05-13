@@ -1,13 +1,17 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-//User 스키마 작성
+
+
 const userSchema = new mongoose.Schema({
-  studentid: {type: String, required: true, unique: true},
-  password: {type: String, required: true},
-  name: {type: String, required: true},
-});
+    studentid: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    name: { type: String, required: true },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' }, // 'user' 또는 'admin' 관리자 역할 추가
+    createdAt: { type: Date, default: Date.now },
  
+});
+
 
 //bcrypt 라이브러리 사용
 //비밀번호 암호화 - 회원가입 시 비밀번호를 해시화하여 저장
