@@ -1,4 +1,4 @@
-package com.example.navermap
+package com.example.shuttlebusapplication
 
 import org.junit.Test
 
