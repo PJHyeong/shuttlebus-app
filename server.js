@@ -22,7 +22,6 @@ app.use(express.json());
 
 
 
-
 // API 라우트 설정
 app.use("/api/auth", authRoutes);
 app.use("/api/notices", notices);
