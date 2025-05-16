@@ -1,60 +1,91 @@
 package com.example.shuttlebusapplication.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shuttlebusapplication.R
+import com.example.shuttlebusapplication.adapter.NoticeAdapter
+import com.example.shuttlebusapplication.databinding.FragmentNoticeBinding
+import com.example.shuttlebusapplication.model.NoticeItem
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class NoticeFragment : Fragment(R.layout.fragment_notice) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [NoticeFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class NoticeFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentNoticeBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    // 테스트용 관리자 플래그 (실제론 세션/로그인 정보에서 받아옴)
+    private val isAdmin = false
+
+    private val allNotices = List(53) {  // 예시: 53개 더미 데이터
+        NoticeItem(
+            id = it + 1,
+            title = "공지 제목 ${it + 1}",
+            date  = "2025-05-${(it % 30) + 1}".padStart(10, '0')
+        )
+    }
+
+    private var currentPage = 1
+    private val pageSize = 10
+    private val totalPages get() = (allNotices.size + pageSize - 1) / pageSize
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        _binding = FragmentNoticeBinding.bind(view)
+
+        // 메인메뉴 버튼
+        binding.btnMenu.setOnClickListener {
+            requireActivity().onBackPressed()
         }
-    }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_notice, container, false)
-    }
+        // RecyclerView 세팅
+        binding.recyclerViewNotice.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+        }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NoticeFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            NoticeFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        // 페이지 버튼
+        binding.btnPrevPage.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                updateList()
             }
+        }
+        binding.btnNextPage.setOnClickListener {
+            if (currentPage < totalPages) {
+                currentPage++
+                updateList()
+            }
+        }
+
+        // 최초 데이터 표시
+        updateList()
+    }
+
+    private fun updateList() {
+        // 페이징 처리
+        val start = (currentPage - 1) * pageSize
+        val pageData = allNotices.subList(
+            start,
+            minOf(start + pageSize, allNotices.size)
+        )
+
+        binding.textPageInfo.text = "$currentPage / $totalPages"
+
+        binding.recyclerViewNotice.adapter = NoticeAdapter(
+            isAdmin, pageData,
+            onItemClick = { notice ->
+                // TODO: 상세 화면으로 이동
+            },
+            onEditClick = { notice ->
+                // TODO: 수정 로직
+            },
+            onDeleteClick = { notice ->
+                // TODO: 삭제 로직
+            }
+        )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
