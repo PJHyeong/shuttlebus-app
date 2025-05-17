@@ -3,6 +3,7 @@ package com.example.shuttlebusapplication.fragment
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.adapter.NoticeAdapter
@@ -15,13 +16,14 @@ class NoticeFragment : Fragment(R.layout.fragment_notice) {
     private val binding get() = _binding!!
 
     // 테스트용 관리자 플래그 (실제론 세션/로그인 정보에서 받아옴)
-    private val isAdmin = false
+    private val isAdmin = true
 
     private val allNotices = List(53) {  // 예시: 53개 더미 데이터
         NoticeItem(
             id = it + 1,
             title = "공지 제목 ${it + 1}",
-            date  = "2025-05-${(it % 30) + 1}".padStart(10, '0')
+            date  = "2025-05-${(it % 30) + 1}".padStart(10, '0'),
+            content = "이것은 공지 ${it + 1}의 더미 내용입니다."
         )
     }
 
@@ -73,7 +75,9 @@ class NoticeFragment : Fragment(R.layout.fragment_notice) {
         binding.recyclerViewNotice.adapter = NoticeAdapter(
             isAdmin, pageData,
             onItemClick = { notice ->
-                // TODO: 상세 화면으로 이동
+                // ⭐ 상세 화면으로 이동 (SafeArgs 사용)
+                val action = NoticeFragmentDirections.actionNoticeFragmentToNoticeDetailFragment(notice)
+                findNavController().navigate(action)
             },
             onEditClick = { notice ->
                 // TODO: 수정 로직
