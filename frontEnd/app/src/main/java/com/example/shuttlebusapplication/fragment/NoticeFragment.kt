@@ -1,60 +1,104 @@
 package com.example.shuttlebusapplication.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.shuttlebusapplication.R
+import com.example.shuttlebusapplication.adapter.NoticeAdapter
+import com.example.shuttlebusapplication.databinding.FragmentNoticeBinding
+import com.example.shuttlebusapplication.viewmodel.NoticeViewModel
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class NoticeFragment : Fragment(R.layout.fragment_notice) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [NoticeFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class NoticeFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentNoticeBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private val viewModel: NoticeViewModel by activityViewModels()
+
+    private val isAdmin = true
+    private var currentPage = 1
+    private val pageSize = 10
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        _binding = FragmentNoticeBinding.bind(view)
+
+        // 메뉴 버튼: 메인 메뉴로 이동
+        binding.btnMenu.setOnClickListener {
+            findNavController().navigate(R.id.action_noticeFragment_to_mainMenuFragment)
+        }
+
+        // 글쓰기 버튼: 관리자만 보임 + 이동 처리
+        binding.btnAddNotice.apply {
+            visibility = if (isAdmin) View.VISIBLE else View.GONE
+            setOnClickListener {
+                findNavController().navigate(R.id.action_noticeFragment_to_addNoticeFragment)
+            }
+        }
+
+        // RecyclerView 초기화
+        binding.recyclerViewNotice.layoutManager = LinearLayoutManager(requireContext())
+
+        // 공지사항 리스트 관찰 (LiveData)
+        viewModel.notices.observe(viewLifecycleOwner) {
+            refreshList()
+        }
+
+        // 이전 페이지 버튼
+        binding.btnPrevPage.setOnClickListener {
+            if (currentPage > 1) {
+                currentPage--
+                refreshList()
+            }
+        }
+
+        // 다음 페이지 버튼
+        binding.btnNextPage.setOnClickListener {
+            viewModel.notices.value?.let {
+                val totalPages = (it.size + pageSize - 1) / pageSize
+                if (currentPage < totalPages) {
+                    currentPage++
+                    refreshList()
+                }
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_notice, container, false)
+    // 페이지별 리스트 업데이트
+    private fun refreshList() {
+        viewModel.notices.value?.let { noticeList ->
+            val start = (currentPage - 1) * pageSize
+            val pageData = noticeList.drop(start).take(pageSize)
+            val totalPages = (noticeList.size + pageSize - 1) / pageSize
+
+            binding.textPageInfo.text = "$currentPage / $totalPages"
+
+            binding.recyclerViewNotice.adapter = NoticeAdapter(
+                isAdmin,
+                pageData,
+                onItemClick = { notice ->
+                    val action = NoticeFragmentDirections.actionNoticeFragmentToNoticeDetailFragment(notice)
+                    findNavController().navigate(action)
+                },
+                onEditClick = { notice ->
+                    Toast.makeText(requireContext(), "수정 기능은 준비 중", Toast.LENGTH_SHORT).show()
+                },
+                onDeleteClick = { notice ->
+                    viewModel.deleteNotice(notice.id)
+                    if ((currentPage - 1) * pageSize >= noticeList.size && currentPage > 1) {
+                        currentPage--
+                    }
+                    refreshList()
+                }
+            )
+        }
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NoticeFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            NoticeFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
