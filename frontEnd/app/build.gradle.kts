@@ -84,6 +84,7 @@ dependencies {
     // Lifecycle KTX (lifecycleScope)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 
+
     // 테스트
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
