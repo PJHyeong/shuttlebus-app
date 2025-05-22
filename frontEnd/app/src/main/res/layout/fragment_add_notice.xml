@@ -59,7 +59,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="취소"
-            android:textColor="@color/black"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#0052CC"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_marginEnd="12dp"/>
 
@@ -69,6 +70,6 @@
             android:layout_height="wrap_content"
             android:text="등록"
             android:textColor="@android:color/white"
-            android:backgroundTint="@color/purple_500"/>
+            android:backgroundTint="#0052CC"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

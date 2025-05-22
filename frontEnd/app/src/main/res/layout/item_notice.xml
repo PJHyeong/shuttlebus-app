@@ -2,9 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="12dp"
     android:orientation="vertical"
-    android:background="?android:attr/selectableItemBackground">
+    android:padding="12dp"
+    android:background="@drawable/notice_card_background">
+
+
+    <!-- 캐릭터 이미지 -->
 
     <TextView
         android:id="@+id/textTitle"
@@ -23,6 +26,7 @@
         android:textSize="12sp"
         android:textColor="#888888"
         android:layout_marginTop="4dp" />
+
 
     <!-- 관리자인 경우만 보일 편집 버튼 -->
     <LinearLayout
