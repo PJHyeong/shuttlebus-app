@@ -7,7 +7,7 @@ const adminMiddleware = require('../middlewares/adminMiddleware'); // 인증 미
 // 공지사항 목록 조회 (모두 가능)
 router.get("/", async (req, res) => {
     try {
-        const notices = await Notice.find();
+        const notices = await Notice.find().sort({ createdAt: -1 });
         res.json(notices);
     } catch (error) {
         res.status(500).json({ message: "공지사항을 불러오는데 실패했습니다." });
