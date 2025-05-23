@@ -50,20 +50,27 @@ class LoginActivity : AppCompatActivity() {
 
         // 로그인 버튼 클릭 시 API 요청
         btnLogin.setOnClickListener {
-            val email = emailEditText.text.toString().trim()
+            val studentid = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
-            if (email.isEmpty() || password.isEmpty()) {
+            if (studentid.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "아이디와 비밀번호를 입력해주세요", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val loginRequest = LoginRequest(email, password)
+            val loginRequest = LoginRequest(studentid, password)
 
-            RetrofitClient.authApi.login(loginRequest).enqueue(object : Callback<LoginResponse> {
+            RetrofitClient.apiService.loginUser(loginRequest).enqueue(object : Callback<LoginResponse> {
                 override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     if (response.isSuccessful) {
                         val user = response.body()?.user
+                        //토큰 저장
+                        val token = response.body()!!.token
+                        getSharedPreferences("app_prefs", MODE_PRIVATE)
+                            .edit()
+                            .putString("jwt_token", token)
+                            .putBoolean("isAdmin", response.body()!!.user.role == "admin")
+                            .apply()
                         Toast.makeText(this@LoginActivity, "환영합니다 ${user?.name}", Toast.LENGTH_SHORT).show()
 
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)

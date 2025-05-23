@@ -17,7 +17,6 @@ import androidx.lifecycle.lifecycleScope
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.model.LocationResponse
 import com.example.shuttlebusapplication.network.RetrofitClient
-import com.example.shuttlebusapplication.network.BusApiService
 import com.example.shuttlebusapplication.fragment.StationInfoBottomSheetFragment
 import com.google.android.gms.location.*
 import com.naver.maps.geometry.LatLng
@@ -34,7 +33,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var naverMap: NaverMap? = null  // 맵 참조 저장
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var busMarker: Marker
-    private val busApi: BusApiService = RetrofitClient.busApi
+    private val busApi = RetrofitClient.apiService
     private var myLocationMarker: Marker? = null
 
     private val handler = Handler(Looper.getMainLooper())

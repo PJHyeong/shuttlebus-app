@@ -1,4 +1,20 @@
 <div align=center>
+            <p>$\huge{\rm{\color{#DD6565} \ Hardware }}$</p>
+            <p>$\it{{\color{#5ad7b7} 라즈베리파이\ 자동\ GPS전송\ GUI\ 구현\ ( 5월 1주차 )}}$</p>
+            <p>$\huge{\rm{\color{#DD6565} \ Backend }}$</p>
+            <p>$\it{{\color{#5ad7b7} Buslocation.js\ :\ 셔틀버스\ 위치\  모델\ [Postman\ 테스트\ 완료]\  ( 5월 1주차 ) }}$</p>
+            <p>$\it{{\color{#5ad7b7} BuslocationRoutes.js\ :\ 셔틀버스\ 위치\ 관련\ 라우트\ [Postman\ 테스트\ 완료]\ ( 5월 1주차 )}}$</p>
+            <br>
+            <p>$\huge{\rm{\color{#DD6565} \ Frontend }}$</p>
+            <p>$\it{{\color{#5ad7b7} 셔틀버스\ 마커\ 업데이트\ (Mapfragment,\ network)\ retrofit를\ 사용해\ 지도에\ 연동\ 완료\ ( 5월 1주차 )}}$</p>
+            <p>$\it{{\color{#5ad7b7} 셔틀버스\ 경로\ 폴리라인\ 추가\ ( 5월 2주차 )}}$</p>
+            <p>$\it{{\color{#5ad7b7} API\ 코드\ 통합\ (ApiService.kt)\ ( 5월 4주차 )}}$</p>
+            <p>$\it{{\color{#5ad7b7} 공지사항\ 기능\ 서버와\ 연동\ ( 5월 2주차 )}}$</p>
+
+</div>
+
+
+<div align=center>
             <img src="https://github.com/user-attachments/assets/58a504d3-33e8-4a73-b998-1a50abd75a83" width="200" height="200" />
             <br>
 </div>
@@ -33,28 +49,12 @@
 </tbody>
 </table>
 </div>
+</div>
+
                 
-## 티맵 api 가입 링크
-https://openapi.sk.com/
-           
-## 셔틀 버스 앱 제작
-클라이언트 ID 발급    
-네이버 지도 SDK를 사용하려면 다음과 같이 애플리케이션을 등록하고 클라이언트 ID를 발급받아야 합니다.    
 
-1. "네이버 클라우드 플랫폼"에 로그인한 후 "콘솔"에 들어갑니다.    
-2.Services에서 Application Services 하위의 Maps를 선택합니다.    
-3.Application 등록을 선택하고 API 선택 하위의 Dynamic Map을 체크합니다.    
-4.Android 앱 패키지 이름에 네이버 지도 SDK를 사용하고자 하는 앱의 패키지명을 추가하고 등록합니다.    
-5.등록한 애플리케이션의 인증 정보를 선택해 키 ID를 확인합니다.    
 
-인증 정보에서 Client ID 복사 후 AndroidManifest.xml 에서
-
-            <meta-data
-                        android:name="com.naver.maps.map.NCP_KEY_ID"
-                        android:value="본인 Client ID 복사" />
         
-
-본인 Client ID 복사 후 실행...!!!    
 
 
 

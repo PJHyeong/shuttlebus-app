@@ -1,6 +1,6 @@
 package com.example.shuttlebusapplication.model
 
 data class LoginRequest(
-    val email: String,
+    val studentid: String,
     val password: String
 )

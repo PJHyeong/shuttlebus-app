@@ -8,7 +8,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.databinding.FragmentAddNoticeBinding
-import com.example.shuttlebusapplication.model.NoticeItem
+import com.example.shuttlebusapplication.model.NoticeRequest
 import com.example.shuttlebusapplication.viewmodel.NoticeViewModel
 
 class AddNoticeFragment : Fragment(R.layout.fragment_add_notice) {
@@ -22,7 +22,7 @@ class AddNoticeFragment : Fragment(R.layout.fragment_add_notice) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentAddNoticeBinding.bind(view)
 
-        // 등록 버튼: 제목/내용 체크 + ViewModel에 추가
+        // 등록 버튼 클릭
         binding.btnSave.setOnClickListener {
             val title = binding.editTitle.text.toString().trim()
             val content = binding.editContent.text.toString().trim()
@@ -32,14 +32,13 @@ class AddNoticeFragment : Fragment(R.layout.fragment_add_notice) {
                 return@setOnClickListener
             }
 
-            val newNotice = NoticeItem(
-                id = System.currentTimeMillis().toInt(), // 임시 ID
-                title = title,
-                date = "2025-05-20", // 실제는 날짜 포맷으로 처리 가능
+            // NoticeItem 대신 NoticeRequest DTO 사용
+            val req = NoticeRequest(
+                title   = title,
                 content = content
             )
 
-            viewModel.addNotice(newNotice)
+            viewModel.createNotice(req)    // API 호출
 
             Toast.makeText(requireContext(), "등록되었습니다.", Toast.LENGTH_SHORT).show()
             findNavController().navigate(R.id.action_addNoticeFragment_to_noticeFragment)
@@ -47,7 +46,7 @@ class AddNoticeFragment : Fragment(R.layout.fragment_add_notice) {
 
         // 취소 버튼
         binding.btnCancel.setOnClickListener {
-            requireActivity().onBackPressed()
+            findNavController().popBackStack()
         }
     }
 
