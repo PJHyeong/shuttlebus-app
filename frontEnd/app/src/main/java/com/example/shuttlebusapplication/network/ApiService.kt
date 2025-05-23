@@ -11,9 +11,9 @@ import com.example.shuttlebusapplication.model.UserResponse
 import com.example.shuttlebusapplication.model.LoginRequest
 import com.example.shuttlebusapplication.model.Announcement
 import com.example.shuttlebusapplication.model.LoginResponse
-import com.example.shuttlebusapplication.model.NoticeItem
 import com.example.shuttlebusapplication.model.NoticeRequest
 import com.example.shuttlebusapplication.model.LocationResponse
+import com.example.shuttlebusapplication.model.NoticeItem
 
 
 interface ApiService {
