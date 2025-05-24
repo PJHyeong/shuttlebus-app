@@ -6,12 +6,21 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.shuttlebusapplication.model.UserRequest
+import com.example.shuttlebusapplication.model.UserResponse
+import com.example.shuttlebusapplication.network.RetrofitClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class NicknameActivity : AppCompatActivity() {
-
     private lateinit var etNickname: EditText
     private lateinit var textNicknameError: TextView
     private lateinit var btnComplete: Button
+
+    private var studentId: String = ""
+    private var password: String = ""
+    private var pushAgree: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,8 +29,12 @@ class NicknameActivity : AppCompatActivity() {
         etNickname = findViewById(R.id.etNickname)
         textNicknameError = findViewById(R.id.textNicknameError)
         btnComplete = findViewById(R.id.btnComplete)
-
         btnComplete.isEnabled = false
+
+        // 1. Intent로 데이터 받기
+        studentId = intent.getStringExtra("studentId") ?: ""
+        password = intent.getStringExtra("password") ?: ""
+        pushAgree = intent.getBooleanExtra("pushAgree", false)
 
         etNickname.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -32,10 +45,29 @@ class NicknameActivity : AppCompatActivity() {
         })
 
         btnComplete.setOnClickListener {
-            // 닉네임 중복 확인 + 서버 등록 요청 이후 처리 예정
-            Toast.makeText(this, "회원가입이 완료되었습니다!", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            val nickname = etNickname.text.toString()
+            // 2. 서버로 회원가입 요청
+            val userRequest = UserRequest(
+                studentid = studentId,
+                password = password,
+                name = nickname // 'name' 필드를 nickname으로 활용
+            )
+            RetrofitClient.apiService.registerUser(userRequest).enqueue(object : Callback<UserResponse> {
+                override fun onResponse(call: Call<UserResponse>, response: Response<UserResponse>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@NicknameActivity, "회원가입이 완료되었습니다!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@NicknameActivity, LoginActivity::class.java))
+                        finish()
+                    } else {
+                        textNicknameError.text = "회원가입에 실패했습니다: ${response.message()}"
+                        textNicknameError.visibility = TextView.VISIBLE
+                    }
+                }
+                override fun onFailure(call: Call<UserResponse>, t: Throwable) {
+                    textNicknameError.text = "네트워크 오류: ${t.localizedMessage}"
+                    textNicknameError.visibility = TextView.VISIBLE
+                }
+            })
         }
     }
 
@@ -67,7 +99,6 @@ class NicknameActivity : AppCompatActivity() {
                 true
             }
         }
-
         textNicknameError.visibility = if (isValid) TextView.GONE else TextView.VISIBLE
         btnComplete.isEnabled = isValid
     }
