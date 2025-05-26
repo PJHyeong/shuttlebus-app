@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.shuttlebusapplication.AlarmReceiver
+import com.example.shuttlebusapplication.LoginActivity
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.repository.ShuttleRepository
 
@@ -59,7 +60,16 @@ class SettingsFragment : Fragment() {
 
         // 로그아웃 버튼
         btnLogout.setOnClickListener {
-            Toast.makeText(requireContext(), "로그아웃 합니다.", Toast.LENGTH_SHORT).show()
+            // 로그인 관련 토큰만 삭제 (user_prefs에서)
+            val loginPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            loginPrefs.edit().remove("token").apply()
+
+            // 로그인 화면으로 이동 (기존 Activity 모두 종료)
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+
+            Toast.makeText(requireContext(), "로그아웃 했습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
