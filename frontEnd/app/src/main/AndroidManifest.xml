@@ -72,7 +72,7 @@
         <!-- 네이버 지도 API 키 -->
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="mw2k7g2tym" />
+            android:value="69hhpxw8f1" />
 
         <receiver android:name=".AlarmReceiver" android:exported="false" />
     </application>

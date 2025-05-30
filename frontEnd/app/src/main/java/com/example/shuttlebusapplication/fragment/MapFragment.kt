@@ -4,255 +4,370 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.*
-import android.widget.ImageButton
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.lifecycleScope
 import com.example.shuttlebusapplication.R
-import com.example.shuttlebusapplication.model.LocationResponse
 import com.example.shuttlebusapplication.network.RetrofitClient
-import com.example.shuttlebusapplication.fragment.StationInfoBottomSheetFragment
-import com.google.android.gms.location.*
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.*
+import com.naver.maps.map.CameraAnimation
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.OnMapReadyCallback
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.overlay.PolylineOverlay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.*
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
+    private lateinit var guideList: List<com.example.shuttlebusapplication.model.Guide>
+    private lateinit var cumDurationMap: Map<Int, List<Long>>
+    private var summaryDurationMs: Long = 0L
+
+    // guide 에서 잡은 실제 회차 지점 인덱스
+    private var pivotRouteIdx: Int = 0
+    private var summaryGoalIdx: Int = 0
+
     private lateinit var mapView: MapView
-    private lateinit var currentNaverMap: NaverMap
-    private var naverMap: NaverMap? = null  // 맵 참조 저장
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private lateinit var busMarker: Marker
+    private lateinit var naverMap: NaverMap
+
+    // 서버에서 3초마다 받아올 버스 위치용
     private val busApi = RetrofitClient.apiService
-    private var myLocationMarker: Marker? = null
+    private lateinit var busMarker: Marker
 
-    private val handler = Handler(Looper.getMainLooper())
-    private lateinit var pollingRunnable: Runnable
-    private val pollingInterval = 5000L
+    // 경로 그리기 및 ETA 계산용
+    private var routeLine: PolylineOverlay? = null
+    private lateinit var routePath: List<LatLng>
+    private var avgSpeed = 0.0                  // m/sec
+    private var currentBusIndex = 0             // 현재 버스가 경로 상 몇 번째 인덱스인지
+    private val stationMarkers = mutableListOf<Marker>()
+    private val stationIndices = mutableMapOf<Marker, List<Int>>()
 
-    private lateinit var routeLine: PolylineOverlay
+    // 폴링 제어
+    private var pollingJob: Job? = null
+    private val pollingInterval = 3_000L        // 3초
 
-    companion object {
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
-    }
+    // 노선상의 정류장 좌표들
+    private val locations = listOf(
+        LatLng(37.2242, 127.1876),  // 기점
+        LatLng(37.2305, 127.1881),  // 이마트
+        LatLng(37.233863, 127.188726), // 행정센터 맞은편
+        LatLng(37.238471, 127.189537), // 명지대역
+        LatLng(37.234104, 127.188628), // 행정센터
+        LatLng(37.2313, 127.1882), // 광장
+        LatLng(37.2223, 127.1889), // 명진당
+        LatLng(37.2195, 127.1836)   // 종점
+    )
 
-    private val busRouteCoordinates = listOf(
-        LatLng(37.2195, 127.1836),
-        LatLng(37.220252, 127.186613),
-        LatLng(37.221042, 127.186816),
-        LatLng(37.221343, 127.187862),
-        LatLng(37.222043, 127.189143),
-        LatLng(37.223287, 127.188026),
-        LatLng(37.224392, 127.187806),
-        LatLng(37.224212, 127.187576),
-        LatLng(37.224392, 127.187806),
-        LatLng(37.224973, 127.187808),
-        LatLng(37.225849, 127.187947),
-        LatLng(37.228031, 127.187671),
-        LatLng(37.236138, 127.189164),
-        LatLng(37.238266, 127.189874),
-        LatLng(37.238731, 127.186211),
-        LatLng(37.236948, 127.185178),
-        LatLng(37.236138, 127.189164)
+    private val stationNames = listOf(
+        "기점(버스관리사무소)",
+        "이마트 앞",
+        "역북동 행정복지센터 건너편",
+        "명지대역 사거리",
+        "역북동 행정복지센터 앞",
+        "광장 정류장",
+        "명진당 앞",
+        "3공학관 앞"
     )
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_map, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.findViewById<View>(R.id.btnMenu)?.setOnClickListener {
-            findNavController().navigate(R.id.mainMenuFragment)
-        }
-
-        view.findViewById<ImageButton>(R.id.btnMyLocation)?.setOnClickListener {
-            moveToCurrentLocation()
-        }
-
+        super.onViewCreated(view, savedInstanceState)
         mapView = view.findViewById(R.id.navermap_map_view)
         mapView.onCreate(savedInstanceState)
         mapView.getMapAsync(this)
+    }
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+    override fun onMapReady(map: NaverMap) {
+        this.naverMap = map
+        // 카메라는 기점으로 이동
+        naverMap.moveCamera(CameraUpdate.scrollTo(locations.first())
+            .animate(CameraAnimation.Easing))
 
-        // 위치 권한 요청
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
+        drawRouteOnMap()
+    }
+
+    // 1) 경로 요청 → Polyline, routePath, avgSpeed 초기화
+    private fun drawRouteOnMap() {
+        val coordStrings = locations.map { "${it.longitude},${it.latitude}" }
+        val start     = coordStrings.first()
+        val goal      = coordStrings.last()
+        val waypoints = coordStrings.drop(1).dropLast(1)
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString("|")
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val resp = RetrofitClient.directionService
+                    .getRoute(start, goal, waypoints)
+                if (!resp.isSuccessful) {
+                    Log.e("RouteError", "code=${resp.code()} body=${resp.errorBody()?.string()}")
+                    return@launch
+                }
+                val optimal = resp.body()?.route
+                    ?.traoptimal
+                    ?.firstOrNull()
+
+                val rawPath = optimal?.path
+                if (rawPath.isNullOrEmpty()) {
+                    Toast.makeText(requireContext(),
+                        "경로 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                // [lon, lat] → LatLng 리스트
+                routePath = rawPath.map { LatLng(it[1], it[0]) }
+
+                // 평균 속도 계산 (m/sec)
+                optimal.summary?.let {
+                    avgSpeed = it.distance.toDouble() / (it.duration.toDouble() / 1000.0)
+                }
+
+                // 폴리라인 그리기
+                routeLine?.map = null
+                routeLine = PolylineOverlay().apply {
+                    coords = routePath
+                    width  = 15
+                    color  = Color.GREEN
+                    map    = naverMap
+                }
+
+                // ── B 방식: guide 누적합산 준비 ──
+                guideList = optimal.guide.orEmpty()
+                val guideList = optimal.guide.orEmpty()
+
+                // ── P턴(3번 좌회전) 기반 pivot 검출 ──
+                // ① 좌회전(type=2) 안내만 뽑고, pivotLoc(명지대역 사거리) 근처만 필터
+                // proximity 필터 없이, 순수 guideList에서 type=2(좌회전) 이벤트만 뽑아서
+                val leftEvents = guideList.filter { it.type == 2 }
+                // ② 3번째 좌회전 이벤트가 있으면 그 지점, 없으면 마지막 지점, 또 없으면 snap fallback
+                pivotRouteIdx = when {
+                    leftEvents.size >= 2 -> leftEvents[2].pointIndex
+                    leftEvents.isNotEmpty() -> leftEvents.last().pointIndex
+                    else -> snapToRoute(locations[3]).second
+                }
+
+                val temp = mutableMapOf<Int, MutableList<Long>>()
+                var acc = 0L
+                guideList.forEach { g ->
+                    acc += g.duration
+                    // 경유지(type=87)나 목적지(type=88) 만 저장
+                    if (g.type == 87 || g.type == 88) {
+                        temp.getOrPut(g.pointIndex) { mutableListOf() }
+                            .add(acc)
+                    }
+                }
+                // ▶ 추가: summary.goal 에 담긴 마지막 목적지 누적 ms 도 저장
+                optimal.summary?.let { summ ->
+                    val goalIdx = summ.goal.pointIndex
+                    val goalMs  = summ.duration.toLong()   // ms 단위 총 소요
+                    summaryGoalIdx = goalIdx
+                    temp.getOrPut(goalIdx) { mutableListOf() }.add(goalMs)
+                    summaryDurationMs = summ.duration.toLong()
+                }
+                cumDurationMap = temp
+
+                initStationMarkers()
+                initBusMarker()
+                startPolling()
+
+            } catch (e: Exception) {
+                Log.e("RouteException", "경로 처리 중 예외", e)
+                Toast.makeText(requireContext(),
+                    "경로 처리 오류: ${e.localizedMessage}", Toast.LENGTH_SHORT
+                ).show()
+            }
         }
     }
 
-    override fun onMapReady(naverMap: NaverMap) {
-        currentNaverMap = naverMap
-        currentNaverMap.moveCamera(CameraUpdate.scrollTo(busRouteCoordinates[0]))
+    private fun initStationMarkers() {
+        stationMarkers.clear()
+        stationIndices.clear()
+        // pivotOrdinal 만 선언 (pivotRouteIdx 는 drawRouteOnMap() 에서 이미 할당됨)
+        val pivotOrdinal = 3
 
-        // 경로 표시
-        routeLine = PolylineOverlay().apply {
-            coords = busRouteCoordinates
-            color = Color.BLUE
-            width = 10
-            map = currentNaverMap
-        }
+        locations.forEachIndexed { ordinal, loc ->
+            val name = stationNames.getOrNull(ordinal) ?: "정류장 $ordinal"
 
-        // 정류장 마커
-        val locations = listOf(
-            LatLng(37.2242, 127.1876) to "버스관리사무소 정류장 (기점)",
-            LatLng(37.2305, 127.1881) to "이마트 앞",
-            LatLng(37.234, 127.1886) to "역북동행정복지센터 앞",
-            LatLng(37.2385, 127.1896) to "명지대역 사거리",
-            LatLng(37.234, 127.1888) to "역북동행정복지센터 건너편",
-            LatLng(37.2313, 127.1882) to "광장",
-            LatLng(37.2223, 127.1889) to "명진당",
-            LatLng(37.2195, 127.1836) to "제3공학관"
-        )
+            // 2) 이 loc 에 대응하는 모든 routePath 上 인덱스들
+            val idxList = routePath.mapIndexedNotNull { i, pt ->
+                if (haversine(pt, loc) < 5.0) i else null
+            }.ifEmpty { listOf(snapToRoute(loc).second) }
 
-        locations.forEach { (location, title) ->
-            Marker().apply {
-                position = location
-                captionText = title
-                icon = OverlayImage.fromResource(R.drawable.bus_marker)
-                map = currentNaverMap
+            val finalIdxList = if (ordinal == locations.lastIndex) idxList + summaryGoalIdx else idxList
 
-                setOnClickListener {
-                    currentNaverMap.moveCamera(
-                        CameraUpdate.scrollAndZoomTo(location, 17.0).animate(CameraAnimation.Easing)
-                    )
-                    StationInfoBottomSheetFragment.newInstance(title)
-                        .show(parentFragmentManager, "StationInfoBottomSheet")
-                    true
-                }
+            // 3) Marker 생성
+            val marker = Marker().apply {
+                position    = loc
+                icon        = OverlayImage.fromResource(R.drawable.bus_marker)
+                captionText = name
+                map         = naverMap
+            }
+
+            stationMarkers += marker
+            stationIndices[marker] = finalIdxList
+
+            // 실제 버스 좌표 기준으로 computeEtaForStation() 호출
+            marker.setOnClickListener {
+                val etaSec = computeEtaForStation(marker)
+                // ① BottomSheet 생성
+                StationInfoBottomSheetFragment
+                    .newInstance(name, etaSec, ordinal)
+                // 👇 여기만 childFragmentManager 로 바꿔 줍니다.
+                    .show(childFragmentManager, "StationInfo")
+                true
             }
         }
-        // --- 실시간 이동 마커 초기화 ---
+    }
+
+    // 3) 처음 버스 마커 세팅
+    private fun initBusMarker() {
         busMarker = Marker().apply {
-            // 초기엔 지도가 표시하는 곳(예: 사무소 정류장)으로 세팅
-            position = LatLng(37.2242, 127.1876)
-            icon = OverlayImage.fromResource(R.drawable.bus_icon)
-            map = naverMap
+            position = locations.first()
+            icon     = OverlayImage.fromResource(R.drawable.bus_icon)
+            map      = naverMap
         }
-
-        // 카메라는 움직이지 않고 마커만 따라가려면 주석 처리
-        // naverMap.moveCamera(CameraUpdate.scrollTo(busMarker.position))
-
-        // --- 폴링 시작 ---
-        startPolling(naverMap)
     }
 
-    private fun moveToCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            Toast.makeText(requireContext(), "위치 권한이 필요합니다", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val locationRequest = LocationRequest.create().apply {
-            priority = Priority.PRIORITY_HIGH_ACCURACY
-            interval = 1000
-            fastestInterval = 500
-            numUpdates = 1
-        }
-
-        fusedLocationClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                val location = result.lastLocation ?: return
-                val latLng = LatLng(location.latitude, location.longitude)
-
-                currentNaverMap.moveCamera(CameraUpdate.scrollTo(latLng).animate(CameraAnimation.Easing))
-
-                if (myLocationMarker == null) {
-                    myLocationMarker = Marker().apply {
-                        position = latLng // ✅ 먼저 위치 설정
-                        icon = OverlayImage.fromResource(R.drawable.current_location)
-                        width = 80
-                        height = 80
-                        map = currentNaverMap
-                    }
-                } else {
-                    myLocationMarker?.position = latLng
-                }
+    /** 원 좌표를 경로上 가장 가까운 지점으로 스냅 → (LatLng, 인덱스) 반환 */
+    private fun snapToRoute(
+        raw: LatLng,
+        minIdx: Int? = null,
+        maxIdx: Int? = null
+    ): Pair<LatLng, Int> {
+        var bestIdx  = minIdx ?: 0
+        var bestDist = Double.MAX_VALUE
+        routePath.forEachIndexed { i, pt ->
+            if ((minIdx != null && i < minIdx) || (maxIdx != null && i > maxIdx)) return@forEachIndexed
+            val d = haversine(raw, pt)
+            if (d < bestDist) {
+                bestDist = d
+                bestIdx  = i
             }
-        }, Looper.getMainLooper())
+        }
+        return routePath[bestIdx] to bestIdx
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
-            moveToCurrentLocation()
+
+
+    /**
+     * 실제 버스 위치 기준으로 남은 ETA(초) 계산
+     */
+    private fun computeEtaForStation(marker: Marker): Long {
+        // 1) 이 마커가 맵에 찍힌 station 좌표 리스트 중 몇 번째인지 찾기
+        val ordinal = stationMarkers.indexOf(marker)
+        if (ordinal < 0) return -1L
+
+        // 2) station 위치 LatLng
+        val stationPos = locations[ordinal]
+
+        // 3) 현재 버스 위치 LatLng
+        val busPos = busMarker.position
+
+        // 1) P턴 전·후 구분
+        val isOutbound = currentBusIndex < pivotRouteIdx
+
+        // 2) busPos 스냅
+        val (snappedBusPos, snappedBusIdx) = if (isOutbound) {
+            snapToRoute(busPos, minIdx = 0, maxIdx = pivotRouteIdx)
         } else {
-            Toast.makeText(requireContext(), "위치 권한이 필요합니다", Toast.LENGTH_SHORT).show()
+            snapToRoute(busPos, minIdx = pivotRouteIdx, maxIdx = routePath.lastIndex)
         }
+
+        // 4) stationPos 스냅 (전체 경로) → 인덱스만
+        val snappedStationIdx = snapToRoute(stationPos).second
+
+        // ★ 이미 지난 정류장은 -1L 리턴
+        if (snappedStationIdx <= snappedBusIdx) {
+            return -1L
+        }
+
+        // 4) headDist, tailDist 계산 (기존 로직과 동일)
+        val headDist = haversine(busPos, snappedBusPos)
+        var tailDist = 0.0
+        for (i in snappedBusIdx until snappedStationIdx) {
+            tailDist += haversine(routePath[i], routePath[i+1])
+        }
+
+        // 5) 총 거리 → 초 단위 ETA
+        val totalDist = headDist + tailDist
+        if (avgSpeed <= 0.0) return -1L
+        val etaSec = (totalDist / avgSpeed).toLong()
+        return if (etaSec >= 0) etaSec else -1L
     }
 
-    /** 주기적으로 서버에서 최신 좌표를 가져와 마커를 옮기는 함수 */
-    private fun startPolling(naverMap: NaverMap) {
-        pollingRunnable = object : Runnable {
-            override fun run() {
-                lifecycleScope.launch {
-                    try {
-                        val loc: LocationResponse = busApi.getLatestLocation()
-                        val newPos = LatLng(loc.lat, loc.lng)
 
-                        // 마커 위치 업데이트 (UI 스레드)
-                        busMarker.position = newPos
 
-                        // 카메라도 함께 이동하고 싶으면 아래 주석 설정
-                        // naverMap.moveCamera(CameraUpdate.scrollTo(newPos))
+    /** 위경도 두 지점間 거리 계산 (m 단위, Haversine) */
+    private fun haversine(a: LatLng, b: LatLng): Double {
+        val R = 6371000.0
+        val dLat = Math.toRadians(a.latitude  - b.latitude)
+        val dLon = Math.toRadians(a.longitude - b.longitude)
+        val lat1 = Math.toRadians(a.latitude)
+        val lat2 = Math.toRadians(b.latitude)
+        val sinDlat = sin(dLat/2); val sinDlon = sin(dLon/2)
+        val h = sinDlat*sinDlat + sinDlon*sinDlon * cos(lat1)*cos(lat2)
+        return 2 * R * atan2(sqrt(h), sqrt(1-h))
+    }
 
-                    } catch (e: Exception) {
-                        Log.e("MapDebug", "폴링 중 에러", e)
+    // 4) 3초마다 서버 호출 → 스냅 + ETA 업데이트
+    private fun startPolling() {
+        pollingJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive) {
+                try {
+                    val loc = busApi.getLatestLocation()
+                    val raw = LatLng(loc.lat, loc.lng)
+
+                    // P턴 전(상행): 0..pivotRouteIdx 까지만 스냅
+                    // P턴 후(하행): pivotRouteIdx..end 까지만 스냅
+                    val (snapped, idx) = if (currentBusIndex < pivotRouteIdx) {
+                        snapToRoute(raw, minIdx = 0, maxIdx = pivotRouteIdx)
+                    } else {
+                        snapToRoute(raw, minIdx = pivotRouteIdx, maxIdx = routePath.lastIndex)
                     }
+
+                    busMarker.position  = snapped
+                    currentBusIndex     = idx
+                } catch (e: Exception) {
+                    Log.e("MapDebug", "폴링 에러", e)
                 }
-                handler.postDelayed(this, pollingInterval)
+                delay(pollingInterval)
             }
         }
-        handler.post(pollingRunnable)
     }
 
-    /** 폴링을 중단할 때 호출 */
-    private fun stopPolling() {
-        handler.removeCallbacks(pollingRunnable)
+    fun computeEtaForStationByIdx(ordinal: Int): Long {
+        val marker = stationMarkers.getOrNull(ordinal) ?: return -1L
+        return computeEtaForStation(marker)
     }
 
     override fun onStart() { super.onStart(); mapView.onStart() }
-    override fun onResume() {
-        super.onResume()
-        mapView.onResume()
-        // Map이 준비된 상태라면 폴링 재개
-        naverMap?.let { startPolling(it) }}
+    override fun onResume() { super.onResume(); mapView.onResume() }
     override fun onPause() {
-        stopPolling()
+        super.onPause()
+        pollingJob?.cancel()
         mapView.onPause()
-        super.onPause()}
+    }
     override fun onStop() { super.onStop(); mapView.onStop() }
     override fun onDestroyView() {
-        // 반드시 폴링 중단 후 MapView 해제
-        stopPolling()
+        pollingJob?.cancel()
         mapView.onDestroy()
         super.onDestroyView()
     }
