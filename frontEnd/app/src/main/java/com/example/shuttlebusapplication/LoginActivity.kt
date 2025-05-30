@@ -69,6 +69,7 @@ class LoginActivity : AppCompatActivity() {
                         getSharedPreferences("app_prefs", MODE_PRIVATE)
                             .edit()
                             .putString("jwt_token", token)
+                            .putString("nickname", user?.name)
                             .putBoolean("isAdmin", response.body()!!.user.role == "admin")
                             .apply()
                         Toast.makeText(this@LoginActivity, "환영합니다 ${user?.name}", Toast.LENGTH_SHORT).show()

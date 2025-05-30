@@ -12,27 +12,27 @@ import com.example.shuttlebusapplication.model.NoticeItem
 
 class NoticeAdapter(
     private val isAdmin: Boolean,
-    private val notices: List<NoticeItem>,
+    private var notices: List<NoticeItem>,
     private val onItemClick: (NoticeItem) -> Unit,
     private val onEditClick: (NoticeItem) -> Unit,
     private val onDeleteClick: (NoticeItem) -> Unit
 ) : RecyclerView.Adapter<NoticeAdapter.NoticeViewHolder>() {
 
     inner class NoticeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val title   = itemView.findViewById<TextView>(R.id.textTitle)
-        private val date    = itemView.findViewById<TextView>(R.id.textDate)
+        private val title = itemView.findViewById<TextView>(R.id.textTitle)
+        private val date = itemView.findViewById<TextView>(R.id.textDate)
         private val adminButtons = itemView.findViewById<LinearLayout>(R.id.adminButtons)
         private val btnEdit = itemView.findViewById<Button>(R.id.btnEdit)
         private val btnDelete = itemView.findViewById<Button>(R.id.btnDelete)
 
         fun bind(item: NoticeItem) {
             title.text = item.title
-            date.text  = item.date
+            date.text = item.date
 
             adminButtons.visibility = if (isAdmin) View.VISIBLE else View.GONE
 
             itemView.setOnClickListener { onItemClick(item) }
-            btnEdit.setOnClickListener   { onEditClick(item) }
+            btnEdit.setOnClickListener { onEditClick(item) }
             btnDelete.setOnClickListener { onDeleteClick(item) }
         }
     }
@@ -48,4 +48,10 @@ class NoticeAdapter(
     }
 
     override fun getItemCount(): Int = notices.size
+
+    // ✅ 리스트 갱신용 함수 추가
+    fun updateData(newList: List<NoticeItem>) {
+        this.notices = newList
+        notifyDataSetChanged()
+    }
 }
