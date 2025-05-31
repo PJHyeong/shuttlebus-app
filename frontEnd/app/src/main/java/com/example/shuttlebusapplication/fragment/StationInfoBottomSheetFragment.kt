@@ -1,3 +1,5 @@
+// 파일 경로: app/src/main/java/com/example/shuttlebusapplication/fragment/StationInfoBottomSheetFragment.kt
+
 package com.example.shuttlebusapplication.fragment
 
 import android.app.AlarmManager
@@ -29,18 +31,24 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
         private const val ARG_STATION_NAME = "station_name"
         private const val ARG_STATION_IDX = "station_idx"
 
+        // SharedPreferences 파일명 (MapFragment와 동일)
+        private const val PREFS_NAME = "alarm_prefs"
+
         /**
          * BottomSheetFragment 인스턴스를 생성할 때 호출할 newInstance 메서드
-         * @param stationName 정류장 이름(String)
-         * @param stationIdx  정류장 인덱스(Int)
+         * @param stationName 정류장 이름 (String)
+         * @param stationIdx  정류장 인덱스 (Int)
          */
-        fun newInstance(stationName: String, stationIdx: Int): StationInfoBottomSheetFragment {
-            val fragment = StationInfoBottomSheetFragment()
-            fragment.arguments = bundleOf(
-                ARG_STATION_NAME to stationName,
-                ARG_STATION_IDX to stationIdx
-            )
-            return fragment
+        fun newInstance(
+            stationName: String,
+            stationIdx: Int
+        ): StationInfoBottomSheetFragment {
+            return StationInfoBottomSheetFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_STATION_NAME, stationName)
+                    putInt(ARG_STATION_IDX, stationIdx)
+                }
+            }
         }
     }
 
@@ -66,7 +74,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         // fragment_station_info_bottom_sheet.xml 레이아웃을 inflate
         val view = inflater.inflate(
@@ -75,14 +83,14 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
             false
         )
 
-        // 상단: 정류장 이름(TextView) → 반드시 제네릭 타입을 명시!
-        val textStationTitle: TextView = view.findViewById<TextView>(R.id.textStationTitle)
+        // 상단: 정류장 이름(TextView)
+        val textStationTitle: TextView = view.findViewById(R.id.textStationTitle)
         textStationTitle.text = stationName
 
-        // 중단: 도착 예정 버스 목록을 동적 추가할 컨테이너 → 제네릭 타입 명시
-        containerArrivalList = view.findViewById<LinearLayout>(R.id.containerArrivalList)
+        // 중단: 도착 예정 버스 목록을 동적 추가할 컨테이너
+        containerArrivalList = view.findViewById(R.id.containerArrivalList)
 
-        // 하단: 새로고침 버튼 → 제네릭 타입 명시
+        // 하단: 새로고침 버튼
         btnRefresh = view.findViewById<ImageButton>(R.id.btnRefresh).apply {
             visibility = View.VISIBLE
             setOnClickListener {
@@ -105,6 +113,9 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
         // 1) 기존 뷰 모두 제거
         containerArrivalList.removeAllViews()
 
+        // SharedPreferences 열기
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
         // 2) 부모 Fragment가 MapFragment인지 확인
         val parentFrag = parentFragment
         if (parentFrag !is MapFragment) {
@@ -115,9 +126,8 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
         // 3) MapFragment에서 실제 도착 예정 버스 목록(List<Arrival>)을 가져온다
         val arrivals: List<Arrival> = parentFrag.getUpcomingArrivalsForStation(stationIdx)
 
-        // 4) 목록이 비어 있으면 “곧 도착 셔틀 없음” 텍스트 표시 후 종료
+        // 4) 만약 목록이 비어 있으면 “곧 도착 셔틀 없음” 텍스트 표시 후 종료
         if (arrivals.isEmpty()) {
-            // 새로 생성하는 TextView 역시 제네릭 타입이 필요 없습니다.
             val tvNone = TextView(requireContext()).apply {
                 text = "곧 도착 셔틀 없음"
                 textSize = 16f
@@ -141,19 +151,51 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                 false
             )
 
-            // a) 셔틀명 + ETA 텍스트 → findViewById 시에도 제네릭 타입 필수
-            val textShuttleInfo: TextView = itemView.findViewById<TextView>(R.id.textShuttleInfo)
+            // a) 셔틀명 + ETA 텍스트
+            val textShuttleInfo: TextView = itemView.findViewById(R.id.textShuttleInfo)
             textShuttleInfo.text = formatEtaLine(arrival.shuttleName, arrival.etaSec)
 
-            // b) 알림 버튼(btnAlarm) → 제네릭 타입 명시
-            val btnAlarm: ImageButton = itemView.findViewById<ImageButton>(R.id.btnAlarm)
-            btnAlarm.setImageResource(R.drawable.non_act_bell) // 초기 상태: 비활성 종
+            // ETA가 60초 미만(1분 미만)일 때 “곧 도착”을 빨간색, 굵은 글씨로 변경
+            if (arrival.etaSec in 0..59) {
+                textShuttleInfo.setTextColor(resources.getColor(
+                    android.R.color.holo_red_dark, null
+                ))
+                textShuttleInfo.setTypeface(
+                    textShuttleInfo.typeface,
+                    android.graphics.Typeface.BOLD
+                )
+            } else {
+                // 그 외에는 검정색, 일반 폰트
+                textShuttleInfo.setTextColor(resources.getColor(
+                    android.R.color.black, null
+                ))
+                textShuttleInfo.setTypeface(
+                    textShuttleInfo.typeface,
+                    android.graphics.Typeface.NORMAL
+                )
+            }
+
+            // b) 알림 버튼(btnAlarm)
+            val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
+
+            // SharedPreferences에 저장된 키 조회
+            // 키 형식: "stationIdx|shuttleName"
+            val key = "$stationIdx|${arrival.shuttleName}"
+            val isAlarmSet = prefs.getBoolean(key, false)
+
+            // (1) 초기 상태에 따라 아이콘 세팅
+            if (isAlarmSet) {
+                btnAlarm.setImageResource(R.drawable.act_bell)    // 활성 아이콘
+            } else {
+                btnAlarm.setImageResource(R.drawable.non_act_bell) // 비활성 아이콘
+            }
 
             // 알림 토글 상태 저장용 변수
-            var isAlarmOn = false
+            var alarmOn = isAlarmSet
+
             btnAlarm.setOnClickListener {
-                if (!isAlarmOn) {
-                    // ▶ 알림 예약: 도착 3분 전
+                if (!alarmOn) {
+                    // ▶ 알림 켜기: 도착 3분 전 예약
                     scheduleNotification(arrival.shuttleName, arrival.etaSec)
                     btnAlarm.setImageResource(R.drawable.act_bell)
                     Toast.makeText(
@@ -161,8 +203,12 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                         "${arrival.shuttleName} 알림이 등록되었습니다.",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // SharedPreferences에 저장
+                    prefs.edit().putBoolean(key, true).apply()
+
                 } else {
-                    // ▶ 알림 취소
+                    // ▶ 알림 끄기: 이미 예약된 알람 취소
                     cancelNotification(arrival.shuttleName)
                     btnAlarm.setImageResource(R.drawable.non_act_bell)
                     Toast.makeText(
@@ -170,8 +216,11 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                         "${arrival.shuttleName} 알림이 취소되었습니다.",
                         Toast.LENGTH_SHORT
                     ).show()
+
+                    // SharedPreferences에서 삭제
+                    prefs.edit().remove(key).apply()
                 }
-                isAlarmOn = !isAlarmOn
+                alarmOn = !alarmOn
             }
 
             containerArrivalList.addView(itemView)
@@ -179,13 +228,14 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     /**
-     * "셔틀명 – N분 M초 후 도착" 형태로 출력할 문자열 생성
+     * "셔틀명 – N분 M초 후 도착" 또는 "도착정보 없음" 형식으로 출력할 문자열 생성
      */
     private fun formatEtaLine(shuttleName: String, etaSec: Long): String {
         return when {
-            etaSec < 0 -> "$shuttleName – 정보 없음"
-            etaSec < 60 -> "$shuttleName – ${etaSec}초 후 도착"
-            else -> {
+            etaSec < 0   -> "$shuttleName – 도착정보 없음"
+            etaSec <= 30  -> "$shuttleName – 곧 도착"
+            etaSec < 60 ->"$shuttleName = ${etaSec}초 후 도착"
+            else         -> {
                 val m = etaSec / 60
                 val s = etaSec % 60
                 "$shuttleName – ${m}분 ${s}초 후 도착"
@@ -194,14 +244,12 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     /**
-     * AlarmManager를 이용해 "도착 3분 전"에 NotificationReceiver로 알림 Intent 전송 예약
+     * AlarmManager를 이용해 “도착 3분 전”에 NotificationReceiver로 알림 Intent 전송 예약
      */
     private fun scheduleNotification(shuttleName: String, etaSec: Long) {
-        val notifyBeforeSec = 180L // 3분 전
+        val notifyBeforeSec = 180L // 3분 전 (원하시면 60L로 바꿔 “1분 전”으로도 설정 가능)
         val triggerInMs = (etaSec - notifyBeforeSec).coerceAtLeast(0L) * 1000L
 
-        // AlarmManager 호출 부분: 이 앱이 정확한 알람 권한을 얻었는지 확인해야 합니다.
-        // Android 12 이상에서는 canScheduleExactAlarms() 체크 후 예외 처리해야 합니다.
         val alarmMgr = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val intent = Intent(requireContext(), NotificationReceiver::class.java).apply {
@@ -216,17 +264,14 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Android 12(API 31)+ 부터 setExactAndAllowWhileIdle 사용 시
-        // 권한이 없으면 SecurityException이 발생하므로 catch 처리 권장
+        val triggerAtMillis = System.currentTimeMillis() + triggerInMs
         try {
-            val triggerAtMillis = System.currentTimeMillis() + triggerInMs
             alarmMgr.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
                 pendingIntent
             )
         } catch (se: SecurityException) {
-            // 예: SCHEDULE_EXACT_ALARM 권한이 거부되었을 때의 예외 처리
             Toast.makeText(requireContext(), "정확한 알람 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
     }

@@ -3,6 +3,10 @@
 package com.example.shuttlebusapplication.fragment
 
 import android.Manifest
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -56,14 +60,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var routePath: List<LatLng>
     private var avgSpeed = 0.0                             // m/sec
     private var currentBusIndex = 0                        // 경로 상 버스 인덱스
-    private val pollingInterval = 3_000L                   // 3초 주기(밀리초)
+    private val pollingInterval = 3_000L                   // 3초 주기
     private var pollingJob: Job? = null
 
-    // 정류장(Station) 마커와, 각 마커에 대응되는 경로상의 인덱스 목록
+    // 정류장(Station) 마커과 그 인덱스 맵
     private val stationMarkers = mutableListOf<Marker>()
     private val stationIndices = mutableMapOf<Marker, List<Int>>()
 
-    // guide 누적합산을 위한 변수(경로 최적화 API에서 받아옴)
+    // 누적 ETA 계산용
     private lateinit var guideList: List<com.example.shuttlebusapplication.model.Guide>
     private lateinit var cumDurationMap: Map<Int, List<Long>>
     private var summaryGoalIdx: Int = 0
@@ -72,6 +76,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
+        // SharedPreferences 파일명
+        private const val PREFS_NAME = "alarm_prefs"
     }
 
     // ───────────────────────────────────────────────
@@ -100,9 +106,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     )
 
     // ───────────────────────────────────────────────
-    // 3) 정류장별 셔틀 운행 정보 (여러 셔틀 이름 리스트)
-    //    • “명지대역 셔틀”만 ETA 계산 가능 (GPS 모듈 지원)
-    //    • 그 외(“시내 셔틀”, “기흥 셔틀” 등)는 ETA 없음(-1)
+    // 3) 정류장별 셔틀 운행 정보 (List<String>)
+    //    • “명지대역 셔틀”만 ETA 계산 가능
+    //    • “시내 셔틀", "기흥 셔틀" → ETA 없음(-1)
     // ───────────────────────────────────────────────
     private val stationShuttleMap: Map<Int, List<String>> = mapOf(
         0 to listOf("명지대역 셔틀", "시내 셔틀", "기흥 셔틀"),    // 기점
@@ -194,7 +200,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 6) drawRouteOnMap(): 네이버 방향 API 호출 후 Polyline/Guide/StationMarkers 초기화
+    // 6) drawRouteOnMap(): 네이버 Direction API 호출 후 Polyline/Guide/StationMarkers 초기화
     // ───────────────────────────────────────────────
     private fun drawRouteOnMap() {
         // (1) “경로 요청”을 위한 좌표 문자열 생성
@@ -207,7 +213,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // (2) 네이버 Directions API 호출
+                // (2) 네이버 Direction API 호출
                 val resp = RetrofitClient.directionService
                     .getRoute(start, goal, waypoints)
                 if (!resp.isSuccessful) {
@@ -315,7 +321,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             stationMarkers += marker
             stationIndices[marker] = finalIdxList
 
-            // (4) 클릭 시 BottomSheet 호출: getUpcomingArrivalsForStation(ordinal) 반환
+            // (4) 클릭 시 BottomSheet 호출: getUpcomingArrivalsForStation(ordinal)
             marker.setOnClickListener {
                 StationInfoBottomSheetFragment
                     .newInstance(name, ordinal)
@@ -330,7 +336,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     // ───────────────────────────────────────────────
     private fun initBusMarker() {
         busMarker = Marker().apply {
-            position = locations.first()   // 처음에는 기점에 버스 위치
+            position = locations.first()   // 처음에는 기점(0) 위치
             icon = OverlayImage.fromResource(R.drawable.bus_icon)
             map = naverMap
         }
@@ -358,7 +364,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 10) computeEtaForStation(): 실제 버스 위치 기준 ETA 계산
+    // 10) computeEtaForStation(): 실제 버스 위치 기준으로 ETA(초) 계산
     // ───────────────────────────────────────────────
     private fun computeEtaForStation(marker: Marker): Long {
         // (1) 해당 마커의 정류장 인덱스 찾기
@@ -368,10 +374,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val stationPos = locations[ordinal]
         val busPos = busMarker.position
 
-        // (2) 상행/하행 구분: pivot 기준
+        // (2) 상행/하행 구분: pivotRouteIdx 기준
         val isOutbound = currentBusIndex < pivotRouteIdx
 
-        // (3) 버스 스냅 (상행 또는 하행 구간)
+        // (3) 버스 스냅
         val (snappedBusPos, snappedBusIdx) = if (isOutbound) {
             snapToRoute(busPos, minIdx = 0, maxIdx = pivotRouteIdx)
         } else {
@@ -389,7 +395,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             tailDist += haversine(routePath[i], routePath[i + 1])
         }
 
-        // (6) 총 거리 → 초 단위 ETA
+        // (6) 총 거리 → ETA
         val totalDist = headDist + tailDist
         if (avgSpeed <= 0.0) return -1L
         val etaSec = (totalDist / avgSpeed).toLong()
@@ -397,10 +403,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 11) getUpcomingArrivalsForStation(): 정류장별 셔틀 목록(List<Arrival>) 반환
+    // 11) getUpcomingArrivalsForStation(): 정류장별 셔틀 목록 반환
     // ───────────────────────────────────────────────
     fun getUpcomingArrivalsForStation(stationIdx: Int): List<Arrival> {
-        // 1) 해당 정류장에 운행하는 셔틀 이름 리스트
+        // 1) 해당 정류장을 운행하는 셔틀 이름 리스트
         val shuttleNames = stationShuttleMap[stationIdx] ?: emptyList()
 
         val arrivals = mutableListOf<Arrival>()
@@ -422,7 +428,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 12) computeEtaForStationByIdx(): index를 받아 computeEtaForStation 호출
+    // 12) computeEtaForStationByIdx(): index 받아 computeEtaForStation 호출
     // ───────────────────────────────────────────────
     fun computeEtaForStationByIdx(ordinal: Int): Long {
         val marker = stationMarkers.getOrNull(ordinal) ?: return -1L
@@ -444,10 +450,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 14) startPolling(): 서버에서 주기적으로 버스 위치 받아오기
+    // 14) startPolling(): 서버에서 주기적으로 버스 위치 받아오기 및
+    //    • SharedPreferences에 저장된 “알람 키”를 조회하여,
+    //    • ETA가 < 0(버스가 정류장을 지난 경우)인 알람을 자동 취소
     // ───────────────────────────────────────────────
     private fun startPolling() {
         pollingJob = viewLifecycleOwner.lifecycleScope.launch {
+            // Preferences 사용
+            val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
             while (isActive) {
                 try {
                     val loc = busApi.getLatestLocation()
@@ -464,6 +475,33 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     busMarker.position = snapped
                     currentBusIndex = idx
 
+                    // ───────────────────────────────────────────────────
+                    //  “등록된 알람 키 목록” 조회 후, ETA < 0인 경우 자동 해제
+                    // ───────────────────────────────────────────────────
+                    val allEntries = prefs.all // Map<String, *>
+                    for ((key, value) in allEntries) {
+                        // key 형식: "stationIdx|shuttleName"
+                        val parts = key.split("|", limit = 2)
+                        if (parts.size < 2) continue
+
+                        val stationIdx = parts[0].toIntOrNull() ?: continue
+                        val shuttleName = parts[1]
+
+                        // 오직 “명지대역 셔틀”만 ETA 계산 → ETA < 0인 경우 취소
+                        if (shuttleName == "명지대역 셔틀") {
+                            val etaForStation = computeEtaForStationByIdx(stationIdx)
+                            if (etaForStation < 0) {
+                                // (1) 알람 취소(PendingIntent 취소)
+                                cancelScheduledAlarm(stationIdx, shuttleName)
+
+                                // (2) Preferences에서 해당 키 제거
+                                prefs.edit().remove(key).apply()
+                            }
+                        }
+                        // “시내 셔틀 / 기흥 셔틀”은 애초에 ETA를 저장하지 않으므로
+                        // bottom sheet에서 누르지 않으면 키가 남아있지 않습니다.
+                    }
+
                 } catch (e: Exception) {
                     Log.e("MapDebug", "폴링 에러", e)
                 }
@@ -473,7 +511,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 15) moveToCurrentLocation(): GPS 권한 확인 후 현재 위치로 카메라 이동
+    // 15) cancelScheduledAlarm(): AlarmManager에 예약된 알람을 바로 취소
+    //    stationIdx, shuttleName → requestCode 재생성 → cancel()
+    // ───────────────────────────────────────────────
+    private fun cancelScheduledAlarm(stationIdx: Int, shuttleName: String) {
+        val alarmMgr = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val requestCode = stationIdx * 1000 + shuttleName.hashCode()
+        val intent = Intent(requireContext(), NotificationReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            requireContext(),
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmMgr.cancel(pendingIntent)
+    }
+
+    // ───────────────────────────────────────────────
+    // 16) moveToCurrentLocation(): GPS 권한 확인 후 현재 위치로 카메라 이동
     // ───────────────────────────────────────────────
     private fun moveToCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(
@@ -510,14 +565,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         map = naverMap
                     }
                 } else {
-                    Toast.makeText(requireContext(), "현재 위치를 가져올 수 없습니다", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "현재 위치를 가져올 수 없습니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }, Looper.getMainLooper())
     }
 
     // ───────────────────────────────────────────────
-    // 16) Fragment 라이프사이클 오버라이드 메서드들
+    // 17) Fragment 라이프사이클 오버라이드 메서드들
     // ───────────────────────────────────────────────
     override fun onStart() {
         super.onStart(); mapView.onStart()
