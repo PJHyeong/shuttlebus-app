@@ -33,7 +33,7 @@ class NoticeFragment : Fragment(R.layout.fragment_notice) {
             .getBoolean("isAdmin", false)
 
     private var currentPage = 1
-    private val pageSize = 3
+    private val pageSize = 8
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         _binding = FragmentNoticeBinding.bind(view)
