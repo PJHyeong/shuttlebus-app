@@ -16,20 +16,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import com.example.shuttlebusapplication.R
+import com.example.shuttlebusapplication.RouteDetailActivity
 import com.example.shuttlebusapplication.model.Arrival
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
  * 정류장 클릭 시 표시되는 Bottom Sheet Dialog Fragment
- * - 상단: 정류장 이름
+ * - 상단: 정류장 이름 (클릭 리스너 없음)
  * - 중단: 도착 예정 버스 목록 (item_arrival_bus.xml)
+ *   • 각 셔틀 이름(textShuttleInfo)을 클릭하면 RouteDetailActivity로 이동
  * - 하단: 새로고침 버튼 (btnRefresh)
  */
 class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
 
     companion object {
         private const val ARG_STATION_NAME = "station_name"
-        private const val ARG_STATION_IDX = "station_idx"
+        private const val ARG_STATION_IDX  = "station_idx"
 
         // SharedPreferences 파일명 (MapFragment와 동일)
         private const val PREFS_NAME = "alarm_prefs"
@@ -54,7 +56,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
 
     // arguments로 전달받은 정류장 이름과 인덱스
     private var stationName: String? = null
-    private var stationIdx: Int = -1
+    private var stationIdx: Int      = -1
 
     // 동적으로 “도착 예정 버스 목록”을 추가할 컨테이너
     private lateinit var containerArrivalList: LinearLayout
@@ -67,7 +69,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
         // Bundle에서 stationName, stationIdx 값을 읽어온다.
         arguments?.let {
             stationName = it.getString(ARG_STATION_NAME)
-            stationIdx = it.getInt(ARG_STATION_IDX)
+            stationIdx  = it.getInt(ARG_STATION_IDX)
         }
     }
 
@@ -83,7 +85,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
             false
         )
 
-        // 상단: 정류장 이름(TextView)
+        // 상단 정류장 이름(TextView) – 클릭 리스너 없음
         val textStationTitle: TextView = view.findViewById(R.id.textStationTitle)
         textStationTitle.text = stationName
 
@@ -151,11 +153,59 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                 false
             )
 
-            // a) 셔틀명 + ETA 텍스트
+            // a) 셔틀명 + ETA 텍스트 (클릭하면 RouteDetailActivity 로 이동)
             val textShuttleInfo: TextView = itemView.findViewById(R.id.textShuttleInfo)
             textShuttleInfo.text = formatEtaLine(arrival.shuttleName, arrival.etaSec)
 
-            // ETA가 60초 미만(1분 미만)일 때 “곧 도착”을 빨간색, 굵은 글씨로 변경
+            // “셔틀명(textShuttleInfo)” 클릭 시 RouteDetailActivity 호출
+            textShuttleInfo.setOnClickListener {
+                val clickedShuttle = arrival.shuttleName
+
+                // ▶▶▶ 셔틀 이름에 따라 서로 다른 정류장 리스트를 만들어서 넘긴다.
+                val stationListForIntent = when (clickedShuttle) {
+                    "명지대역 셔틀" -> arrayListOf(
+                        "기점(버스관리사무소)",
+                        "이마트 앞",
+                        "역북동 행정복지센터 건너편",
+                        "명지대역 사거리",
+                        "역북동 행정복지센터 앞",
+                        "광장 정류장",
+                        "명진당 앞",
+                        "3공학관 앞"
+                    )
+                    "시내 셔틀"    -> arrayListOf(
+                        "기점(버스관리사무소)",
+                        "이마트 상공회의소 앞",
+                        "역북동 행정복지센터 건너편",
+                        "동부경찰서 중앙지구대 앞",
+                        "용인 CGV",
+                        "중앙공영주차장 앞",
+                        "역북동 행정복지센터 앞",
+                        "이마트 상공회의소 건너편",
+                        "제1공학관",
+                        "제3공학관"
+                    )
+                    "기흥 셔틀"    -> arrayListOf(
+                        "기점(버스관리사무소)",
+                        "기흥역 5번 출구",
+                        "채플관 앞"
+                    )
+                    else -> arrayListOf(  // 그 외 셔틀(예비)
+                        "기점(버스관리사무소)",
+                        "이마트 앞",
+                        "명지대역 사거리"
+                    )
+                }
+
+                // 인텐트에 넘겨 주기
+                val intent = Intent(requireContext(), RouteDetailActivity::class.java).apply {
+                    putStringArrayListExtra("stationList", stationListForIntent)
+                    putExtra("shuttleName", clickedShuttle)
+                }
+                startActivity(intent)
+            }
+
+            // b) ETA가 60초 미만(1분 미만)일 때 “곧 도착”을 빨간색, 굵은 글씨로 변경
             if (arrival.etaSec in 0..59) {
                 textShuttleInfo.setTextColor(resources.getColor(
                     android.R.color.holo_red_dark, null
@@ -175,7 +225,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                 )
             }
 
-            // b) 알림 버튼(btnAlarm)
+            // c) 알림 버튼(btnAlarm)
             val btnAlarm: ImageButton = itemView.findViewById(R.id.btnAlarm)
 
             // SharedPreferences에 저장된 키 조회
@@ -232,10 +282,10 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
      */
     private fun formatEtaLine(shuttleName: String, etaSec: Long): String {
         return when {
-            etaSec < 0   -> "$shuttleName – 도착정보 없음"
+            etaSec < 0    -> "$shuttleName – 도착정보 없음"
             etaSec <= 30  -> "$shuttleName – 곧 도착"
-            etaSec < 60 ->"$shuttleName = ${etaSec}초 후 도착"
-            else         -> {
+            etaSec < 60   -> "$shuttleName – ${etaSec}초 후 도착"
+            else          -> {
                 val m = etaSec / 60
                 val s = etaSec % 60
                 "$shuttleName – ${m}분 ${s}초 후 도착"
