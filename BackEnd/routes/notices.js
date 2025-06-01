@@ -7,7 +7,7 @@ const adminMiddleware = require('../middlewares/adminMiddleware'); // 인증 미
 // 공지사항 목록 조회 (모두 가능)
 router.get("/", async (req, res) => {
     try {
-        const notices = await Notice.find();
+        const notices = await Notice.find().sort({ createdAt: -1 });
         res.json(notices);
     } catch (error) {
         res.status(500).json({ message: "공지사항을 불러오는데 실패했습니다." });
@@ -34,8 +34,8 @@ router.delete("/:id", adminMiddleware, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const Notice = await Notice.findByIdAndDelete(id);
-        if (!Notice) {
+        const deleteNotice = await Notice.findByIdAndDelete(id);
+        if (!deleteNotice) {
             return res.status(404).json({ message: "공지사항이 존재하지 않습니다." });
         }
         res.json({ message: "공지사항이 삭제되었습니다." });
@@ -44,6 +44,27 @@ router.delete("/:id", adminMiddleware, async (req, res) => {
     }
 });
 
+// 공지사항 수정
+router.put("/:id", adminMiddleware, async (req, res) => {
+    const { id } = req.params;
+    const { title, content } = req.body;
+
+    try {
+        const updatedNotice = await Notice.findByIdAndUpdate(
+            id,
+            { title, content },
+            { new: true }
+        );
+
+        if (!updatedNotice) {
+            return res.status(404).json({ message: "공지사항을 찾을 수 없습니다." });
+        }
+
+        res.json(updatedNotice);
+    } catch (error) {
+        res.status(500).json({ message: "공지사항 수정 실패" });
+    }
+});
 
 //특정 공지사항 조회 기능 추가 고민
 
