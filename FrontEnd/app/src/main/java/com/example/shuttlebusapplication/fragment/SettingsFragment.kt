@@ -11,9 +11,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Switch
 import android.widget.Toast
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.shuttlebusapplication.AlarmReceiver
+import com.example.shuttlebusapplication.LoginActivity
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.repository.ShuttleRepository
 
@@ -39,6 +41,17 @@ class SettingsFragment : Fragment() {
         val btnLogout: Button = view.findViewById(R.id.btnLogout)
         val btnMenu: View = view.findViewById(R.id.btnMenu)
 
+        // 1) tvUserId 참조 (xml에 android:id="@+id/tvUserId")
+        val tvUserId: TextView = view.findViewById(R.id.tvUserId)
+
+        // 2) SharedPreferences에서 닉네임 읽기
+        val loginPrefs = requireContext()
+            .getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val nickname = loginPrefs.getString("nickname", "닉네임 설정 필요")
+
+        // 3) TextView에 세팅
+        tvUserId.text = nickname
+
         // 메뉴 버튼
         btnMenu.setOnClickListener {
             findNavController().navigate(R.id.mainMenuFragment)
@@ -59,7 +72,19 @@ class SettingsFragment : Fragment() {
 
         // 로그아웃 버튼
         btnLogout.setOnClickListener {
-            Toast.makeText(requireContext(), "로그아웃 합니다.", Toast.LENGTH_SHORT).show()
+            // 로그인 관련 토큰만 삭제 (user_prefs에서)
+            val loginPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            loginPrefs.edit()
+                .remove("jwt_token")
+                .remove("nickname")
+                .apply()
+
+            // 로그인 화면으로 이동 (기존 Activity 모두 종료)
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+
+            Toast.makeText(requireContext(), "로그아웃 했습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 

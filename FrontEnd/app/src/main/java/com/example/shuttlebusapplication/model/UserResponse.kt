@@ -8,5 +8,6 @@ data class UserResponse(
 data class UserInfo(
     val id: String,
     val name: String,
-    val studentid: String
+    val studentid: String,
+    val role: String
 )

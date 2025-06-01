@@ -1,7 +1,10 @@
 plugins {
+
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-parcelize")
+    id("androidx.navigation.safeargs.kotlin") version "2.8.9"
 }
 
 android {
@@ -46,6 +49,7 @@ android {
 
 dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
+
     implementation("com.google.android.gms:play-services-location:21.0.1")
     // Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)

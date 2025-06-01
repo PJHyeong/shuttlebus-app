@@ -38,6 +38,6 @@
         android:padding="12dp"
         android:textSize="16sp"
         android:enabled="false"
-        android:backgroundTint="@color/purple_500"
+        android:backgroundTint="#0052CC"
         android:textColor="@android:color/white" />
 </LinearLayout>
