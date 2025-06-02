@@ -15,6 +15,8 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+
+
     private val client = OkHttpClient.Builder()
         .addInterceptor(logging)
         .build()
@@ -27,7 +29,7 @@ object RetrofitClient {
             .build()
             .create(ApiService::class.java)
     }
-/// Naver Direction 15 Api 전용
+    /// Naver Direction 15 Api 전용
     private const val DIRECTION_BASE_URL = "https://maps.apigw.ntruss.com/"
     private const val NCP_CLIENT_ID     = "69hhpxw8f1"
     private const val NCP_CLIENT_SECRET = "3f7luEnC4nyW9UqGylL8at6sA6ImhScDxgocQjP7"
