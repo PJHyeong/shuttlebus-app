@@ -8,9 +8,10 @@ const router = express.Router();
 // 회원가입
 router.post("/register", async (req, res) => {
     try {
-        const { studentid, password, name, role } = req.body; // role을 추가
-        const existingUser = await User.findOne({ studentid });
+        let { studentid, password, name, role } = req.body; // role을 추가
+        if(!role) role = "user"; // 기본 역할을 "user"로 설정
 
+        const existingUser = await User.findOne({ studentid });
         if (existingUser) return res.status(400).json({ message: "이미 가입된 이메일입니다." });
 
         const user = new User({ studentid, password, name, role }); // role 저장
@@ -18,6 +19,7 @@ router.post("/register", async (req, res) => {
         
         res.status(201).json({ message: "회원가입 성공!" });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "회원가입 실패" });
     }
 });
