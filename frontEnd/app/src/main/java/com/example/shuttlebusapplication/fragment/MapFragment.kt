@@ -57,7 +57,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     // 폴링 제어
     private var pollingJob: Job? = null
-    private val pollingInterval = 3_000L        // 3초
+    private val pollingInterval = 1_000L        // 3초
 
     // 노선상의 정류장 좌표들
     private val locations = listOf(
