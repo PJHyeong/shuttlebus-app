@@ -48,9 +48,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var mapView: MapView
     private lateinit var naverMap: NaverMap
 
-    // GPS 기반 현재 위치 이동용
+    // GPS 기반 현재 위치 받아오는 용도 (버튼 클릭 시 한 번만)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+    // 내 위치 마커 (버튼 클릭할 때마다 생성/이전에 있으면 삭제)
+    private var locationMarker: Marker? = null
     // “버스 위치”를 서버에서 3초마다 받아와 마커를 이동시키는 용도
     private val busApi = RetrofitClient.apiService
     private lateinit var busMarker: Marker
@@ -118,7 +120,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         4 to listOf("명지대역 셔틀", "시내 셔틀"),               // 역북동 행정복지센터 앞
         5 to listOf("명지대역 셔틀", "시내 셔틀"),               // 광장 정류장
         6 to listOf("명지대역 셔틀"),                            // 명진당 앞
-        7 to listOf("명지대역 셔틀", "시내 셔틀")                // 제3공학관 앞
+        7 to listOf("명지대역 셔틀", "시내 셔틀")                // 3공학관 앞
     )
 
     // ───────────────────────────────────────────────
@@ -138,9 +140,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             findNavController().navigate(R.id.mainMenuFragment)
         }
 
-        // (2) 현재 위치(내 위치) 버튼
+        // (2) 현재 위치(내 위치) 버튼 → 클릭 시 한 번만 위치 마커 찍기
         view.findViewById<ImageButton>(R.id.btnMyLocation).setOnClickListener {
-            moveToCurrentLocation()
+            centerCameraAndPlaceMarker()
         }
 
         // (3) FusedLocationClient 초기화 및 권한 요청
@@ -166,7 +168,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         mapView.getMapAsync(this)
     }
 
-    // 권한 요청 결과 콜백: 허용 시 moveToCurrentLocation() 호출
+    // 권한 요청 결과 콜백: 허용 시 아무 동작도 안 하고, 버튼 클릭 시에만 위치 얻도록 함
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -177,7 +179,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             && grantResults.isNotEmpty()
             && grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            moveToCurrentLocation()
         } else {
             Toast.makeText(requireContext(), "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
@@ -189,13 +190,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(map: NaverMap) {
         this.naverMap = map
 
-        // 카메라를 첫 정류장(기점)으로 이동
+        // (1) 카메라를 첫 정류장(기점)으로 이동
         naverMap.moveCamera(
             CameraUpdate.scrollTo(locations.first())
                 .animate(CameraAnimation.Easing)
         )
 
-        // 경로 요청 및 초기화
+        // (2) 경로 요청 및 초기화
         drawRouteOnMap()
     }
 
@@ -367,35 +368,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     // 10) computeEtaForStation(): 실제 버스 위치 기준으로 ETA(초) 계산
     // ───────────────────────────────────────────────
     private fun computeEtaForStation(marker: Marker): Long {
-        // (1) 해당 마커의 정류장 인덱스 찾기
         val ordinal = stationMarkers.indexOf(marker)
         if (ordinal < 0) return -1L
 
         val stationPos = locations[ordinal]
         val busPos = busMarker.position
 
-        // (2) 상행/하행 구분: pivotRouteIdx 기준
         val isOutbound = currentBusIndex < pivotRouteIdx
-
-        // (3) 버스 스냅
         val (snappedBusPos, snappedBusIdx) = if (isOutbound) {
             snapToRoute(busPos, minIdx = 0, maxIdx = pivotRouteIdx)
         } else {
             snapToRoute(busPos, minIdx = pivotRouteIdx, maxIdx = routePath.lastIndex)
         }
 
-        // (4) 정류장 스냅 (경로 전체)
         val snappedStationIdx = snapToRoute(stationPos).second
         if (snappedStationIdx <= snappedBusIdx) return -1L
 
-        // (5) headDist + tailDist 계산
         val headDist = haversine(busPos, snappedBusPos)
         var tailDist = 0.0
         for (i in snappedBusIdx until snappedStationIdx) {
             tailDist += haversine(routePath[i], routePath[i + 1])
         }
 
-        // (6) 총 거리 → ETA
         val totalDist = headDist + tailDist
         if (avgSpeed <= 0.0) return -1L
         val etaSec = (totalDist / avgSpeed).toLong()
@@ -406,13 +400,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     // 11) getUpcomingArrivalsForStation(): 정류장별 셔틀 목록 반환
     // ───────────────────────────────────────────────
     fun getUpcomingArrivalsForStation(stationIdx: Int): List<Arrival> {
-        // 1) 해당 정류장을 운행하는 셔틀 이름 리스트
         val shuttleNames = stationShuttleMap[stationIdx] ?: emptyList()
-
         val arrivals = mutableListOf<Arrival>()
         shuttleNames.forEach { shuttleName ->
             if (shuttleName == "명지대역 셔틀") {
-                // 명지대역 셔틀만 ETA 계산
                 val eta = computeEtaForStationByIdx(stationIdx)
                 if (eta < 0) {
                     arrivals.add(Arrival(shuttleName, -1))
@@ -420,7 +411,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     arrivals.add(Arrival(shuttleName, eta))
                 }
             } else {
-                // 시내 셔틀, 기흥 셔틀 등 → ETA 없음
                 arrivals.add(Arrival(shuttleName, -1))
             }
         }
@@ -450,58 +440,38 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 14) startPolling(): 서버에서 주기적으로 버스 위치 받아오기 및
-    //    • SharedPreferences에 저장된 “알람 키”를 조회하여,
-    //    • ETA가 < 0(버스가 정류장을 지난 경우)인 알람을 자동 취소
+    // 14) startPolling(): 서버에서 주기적으로 버스 위치 받아오기 및 ETA < 0인 알람 취소
     // ───────────────────────────────────────────────
     private fun startPolling() {
         pollingJob = viewLifecycleOwner.lifecycleScope.launch {
-            // Preferences 사용
             val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
             while (isActive) {
                 try {
                     val loc = busApi.getLatestLocation()
                     val raw = LatLng(loc.lat, loc.lng)
 
-                    // P턴 전(상행): 0..pivotRouteIdx
-                    // P턴 후(하행): pivotRouteIdx..마지막
                     val (snapped, idx) = if (currentBusIndex < pivotRouteIdx) {
                         snapToRoute(raw, minIdx = 0, maxIdx = pivotRouteIdx)
                     } else {
                         snapToRoute(raw, minIdx = pivotRouteIdx, maxIdx = routePath.lastIndex)
                     }
-
                     busMarker.position = snapped
                     currentBusIndex = idx
 
-                    // ───────────────────────────────────────────────────
-                    //  “등록된 알람 키 목록” 조회 후, ETA < 0인 경우 자동 해제
-                    // ───────────────────────────────────────────────────
-                    val allEntries = prefs.all // Map<String, *>
-                    for ((key, value) in allEntries) {
-                        // key 형식: "stationIdx|shuttleName"
+                    val allEntries = prefs.all
+                    for ((key, _) in allEntries) {
                         val parts = key.split("|", limit = 2)
                         if (parts.size < 2) continue
-
                         val stationIdx = parts[0].toIntOrNull() ?: continue
                         val shuttleName = parts[1]
-
-                        // 오직 “명지대역 셔틀”만 ETA 계산 → ETA < 0인 경우 취소
                         if (shuttleName == "명지대역 셔틀") {
                             val etaForStation = computeEtaForStationByIdx(stationIdx)
                             if (etaForStation < 0) {
-                                // (1) 알람 취소(PendingIntent 취소)
                                 cancelScheduledAlarm(stationIdx, shuttleName)
-
-                                // (2) Preferences에서 해당 키 제거
                                 prefs.edit().remove(key).apply()
                             }
                         }
-                        // “시내 셔틀 / 기흥 셔틀”은 애초에 ETA를 저장하지 않으므로
-                        // bottom sheet에서 누르지 않으면 키가 남아있지 않습니다.
                     }
-
                 } catch (e: Exception) {
                     Log.e("MapDebug", "폴링 에러", e)
                 }
@@ -511,8 +481,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 15) cancelScheduledAlarm(): AlarmManager에 예약된 알람을 바로 취소
-    //    stationIdx, shuttleName → requestCode 재생성 → cancel()
+    // 15) cancelScheduledAlarm(): 예약된 알람 즉시 취소
     // ───────────────────────────────────────────────
     private fun cancelScheduledAlarm(stationIdx: Int, shuttleName: String) {
         val alarmMgr = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -528,9 +497,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     // ───────────────────────────────────────────────
-    // 16) moveToCurrentLocation(): GPS 권한 확인 후 현재 위치로 카메라 이동
+    // 16) centerCameraAndPlaceMarker(): 버튼 클릭 시 현재 위치로 카메라 이동 후 위치 마커 생성
     // ───────────────────────────────────────────────
-    private fun moveToCurrentLocation() {
+    private fun centerCameraAndPlaceMarker() {
+        // 위치 권한 체크
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -540,57 +510,57 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             return
         }
 
-        val locationRequest = LocationRequest.create().apply {
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            interval = 1000
-            fastestInterval = 500
-            numUpdates = 1
-        }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null && ::naverMap.isInitialized) {
+                val latLng = LatLng(location.latitude, location.longitude)
 
-        fusedLocationClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
-            override fun onLocationResult(result: LocationResult) {
-                val location = result.lastLocation
-                if (location != null) {
-                    val latLng = LatLng(location.latitude, location.longitude)
-                    naverMap.moveCamera(
-                        CameraUpdate.scrollTo(latLng)
-                            .animate(CameraAnimation.Easing)
-                    )
+                // (1) 기존 locationMarker가 있으면 제거
+                locationMarker?.map = null
 
-                    Marker().apply {
-                        position = latLng
-                        icon = OverlayImage.fromResource(R.drawable.current_location)
-                        width = 80
-                        height = 80
-                        map = naverMap
-                    }
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "현재 위치를 가져올 수 없습니다",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                // (2) 새로운 위치 마커 생성
+                locationMarker = Marker().apply {
+                    position = latLng
+                    icon = OverlayImage.fromResource(R.drawable.current_location)
+                    width = 80
+                    height = 80
+                    map = naverMap
                 }
+
+                // (3) 카메라를 현재 위치로 이동 (애니메이션)
+                naverMap.moveCamera(
+                    CameraUpdate.scrollTo(latLng)
+                        .animate(CameraAnimation.Easing)
+                )
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "현재 위치를 가져올 수 없습니다",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-        }, Looper.getMainLooper())
+        }
     }
 
     // ───────────────────────────────────────────────
     // 17) Fragment 라이프사이클 오버라이드 메서드들
     // ───────────────────────────────────────────────
     override fun onStart() {
-        super.onStart(); mapView.onStart()
+        super.onStart()
+        mapView.onStart()
     }
     override fun onResume() {
-        super.onResume(); mapView.onResume()
+        super.onResume()
+        mapView.onResume()
     }
     override fun onPause() {
         super.onPause()
+        // locationMarker를 그대로 두고, 추가 업데이트는 하지 않음
         pollingJob?.cancel()
         mapView.onPause()
     }
     override fun onStop() {
-        super.onStop(); mapView.onStop()
+        super.onStop()
+        mapView.onStop()
     }
     override fun onDestroyView() {
         pollingJob?.cancel()
@@ -598,7 +568,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onDestroyView()
     }
     override fun onLowMemory() {
-        super.onLowMemory(); mapView.onLowMemory()
+        super.onLowMemory()
+        mapView.onLowMemory()
     }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

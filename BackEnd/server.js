@@ -29,3 +29,4 @@ app.use('/api', commentRoutes);
 
 const PORT = process.env.PORT || 5000;  // 포트 설정(5000번)
 app.listen(PORT, () => console.log(`🟢 Node.js 서버가 http://localhost:${PORT} 포트에서 실행 중 입니다`));
+
