@@ -28,6 +28,7 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
     private var _binding: FragmentNoticeDetailBinding? = null
     private val binding get() = _binding!!
 
+
     private lateinit var notice: NoticeItem
 
     // 댓글을 담을 리스트와 어댑터 변수

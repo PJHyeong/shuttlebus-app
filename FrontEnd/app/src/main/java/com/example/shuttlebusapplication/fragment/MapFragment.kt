@@ -53,7 +53,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     // 내 위치 마커 (버튼 클릭할 때마다 생성/이전에 있으면 삭제)
     private var locationMarker: Marker? = null
-
     // “버스 위치”를 서버에서 3초마다 받아와 마커를 이동시키는 용도
     private val busApi = RetrofitClient.apiService
     private lateinit var busMarker: Marker
@@ -94,7 +93,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         LatLng(37.234104, 127.188628),   // 4: 역북동 행정복지센터 앞
         LatLng(37.2313, 127.1882),       // 5: 광장 정류장
         LatLng(37.2223, 127.1889),       // 6: 명진당 앞
-        LatLng(37.2195, 127.1836)        // 7: 3공학관 앞
+        LatLng(37.2195, 127.1836)        // 7: 제3공학관 앞
     )
 
     private val stationNames = listOf(
@@ -180,8 +179,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             && grantResults.isNotEmpty()
             && grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-            // 권한이 허용되었지만, 실제 위치는 버튼 클릭 때만 가져오도록 함
-            // 따라서 여기서는 별도 처리를 하지 않습니다.
         } else {
             Toast.makeText(requireContext(), "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
         }
