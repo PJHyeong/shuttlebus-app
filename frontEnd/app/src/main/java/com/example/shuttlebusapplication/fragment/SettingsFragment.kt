@@ -11,9 +11,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Switch
 import android.widget.Toast
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.shuttlebusapplication.AlarmReceiver
+import com.example.shuttlebusapplication.LoginActivity
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.repository.ShuttleRepository
 
@@ -39,6 +41,17 @@ class SettingsFragment : Fragment() {
         val btnLogout: Button = view.findViewById(R.id.btnLogout)
         val btnMenu: View = view.findViewById(R.id.btnMenu)
 
+        // 1) tvUserId 참조 (xml에 android:id="@+id/tvUserId")
+        val tvUserId: TextView = view.findViewById(R.id.tvUserId)
+
+        // 2) SharedPreferences에서 닉네임 읽기
+        val loginPrefs = requireContext()
+            .getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val nickname = loginPrefs.getString("nickname", "닉네임 설정 필요")
+
+        // 3) TextView에 세팅
+        tvUserId.text = nickname
+
         // 메뉴 버튼
         btnMenu.setOnClickListener {
             findNavController().navigate(R.id.mainMenuFragment)
@@ -59,7 +72,39 @@ class SettingsFragment : Fragment() {
 
         // 로그아웃 버튼
         btnLogout.setOnClickListener {
-            Toast.makeText(requireContext(), "로그아웃 합니다.", Toast.LENGTH_SHORT).show()
+            // ─────────────────────────────────────────────────────────────────
+            // 1) “app_prefs”에서 저장된 자동로그인 정보 및 JWT 토큰도 전부 삭제
+            // ─────────────────────────────────────────────────────────────────
+            val appPrefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            appPrefs.edit().apply {
+                remove("jwt_token")               // 로그인 토큰 삭제
+                remove("nickname")                // 닉네임 삭제
+                remove("isAdmin")                 // 관리자 여부 삭제 (있다면)
+                remove("auto_login_enabled")      // 자동로그인 설정 삭제
+                remove("saved_id")                // 저장된 아이디 삭제
+                remove("saved_pw")                // 저장된 비밀번호 삭제
+                apply()
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // 2) (기존) “user_prefs”가 따로 있다면, 그쪽에 남은 토큰도 삭제
+            //    만약 “user_prefs”를 안 쓰신다면 이 부분은 지우셔도 됩니다.
+            // ─────────────────────────────────────────────────────────────────
+            val userPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            userPrefs.edit().apply {
+                remove("jwt_token")
+                remove("nickname")
+                apply()
+            }
+
+            // ─────────────────────────────────────────────────────────────────
+            // 3) 로그인 화면으로 이동 (기존 Activity 모두 클리어)
+            // ─────────────────────────────────────────────────────────────────
+            val intent = Intent(requireContext(), LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+
+            Toast.makeText(requireContext(), "로그아웃 했습니다.", Toast.LENGTH_SHORT).show()
         }
     }
 
