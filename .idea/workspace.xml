@@ -92,41 +92,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc9ae174-759b-4a72-84ef-2238e1c3d3a4" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/checksums/checksums.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/executionHistory/executionHistory.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileChanges/last-build.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileHashes/fileHashes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/fileHashes/fileHashes.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/8.11.1/gc.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/vcs-1/gc.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/AndroidProjectSystem.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/migrations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/navEditor.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shuttlebus-app.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/NoticeItem.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/adapter/NoticeAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/adapter/NoticeAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/AddNoticeFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/AddNoticeFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/NoticeDetailFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/NoticeDetailFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/NoticeFragment.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/fragment/NoticeFragment.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/NoticeViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/NoticeViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/UserInfo.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/network/ApiService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/network/ApiService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/viewmodel/NoticeViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/fragment_notice.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/fragment_notice.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/item_notice.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/item_notice.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/res/navigation/nav_graph.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/res/navigation/nav_graph.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/settings.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/.env" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/BackEnd/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -136,7 +103,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\pcw98\.android\avd\Pixel_5.avd)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -182,12 +149,12 @@
     &quot;assignee&quot;: &quot;ytw1227&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/PJHyeong/shuttlebus-app&quot;,
-    &quot;accountId&quot;: &quot;f5557384-4ee8-4685-87ee-c5d1f5a22c8e&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/PJHyeong/shuttlebus-app.git",
+    "accountId": "8f356e20-a36f-4e3d-9dbe-58b6f274b875"
   }
-}</component>
+}]]></component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -203,25 +170,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Android App.ShuttleBusApplication.app.executor&quot;: &quot;Run&quot;,
-    &quot;Android App.ShuttleBusApplication.app.unitTest~1.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;#1 on taewoo&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/taeu5/AndroidStudioProjects/shuttlebus-app/frontEnd/settings.gradle.kts&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;AndroidSdkUpdater&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Android App.ShuttleBusApplication.app.executor": "Run",
+    "Android App.ShuttleBusApplication.app.unitTest~1.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "#4 on taewoo",
+    "last_opened_file_path": "C:/Users/taeu5/AndroidStudioProjects/shuttlebus-app/frontEnd/settings.gradle.kts",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.17",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "AndroidSdkUpdater"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="K2MoveDeclarationsDialog.RECENT_PACKAGE_KEY">
       <recent name="com.example.shuttlebusapplication.model" />
