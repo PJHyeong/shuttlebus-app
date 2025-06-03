@@ -48,7 +48,7 @@ interface ApiService {
     @DELETE("announcements/{id}")
     fun deleteAnnouncement(@Path("id") announcementId: String): Call<Void>
 
-    // 공지사항 관련
+    //공지사항 관련
 
     @GET("notices")
     fun getNotices(): Call<List<NoticeItem>>
@@ -72,10 +72,8 @@ interface ApiService {
         @Path("id") id: String
     ): Call<Void>
 
-    // 댓글 관련
+    // 댓글 추가
     @POST("comments")
     fun addComment(@Body commentRequest: CommentRequest): Call<CommentResponse>
 
-    @GET("comments")
-    fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>  // ✅ 추가된 부분
 }

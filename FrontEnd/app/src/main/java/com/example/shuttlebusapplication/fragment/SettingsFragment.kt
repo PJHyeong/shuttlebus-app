@@ -72,34 +72,14 @@ class SettingsFragment : Fragment() {
 
         // 로그아웃 버튼
         btnLogout.setOnClickListener {
-            // ─────────────────────────────────────────────────────────────────
-            // 1) “app_prefs”에서 저장된 자동로그인 정보 및 JWT 토큰도 전부 삭제
-            // ─────────────────────────────────────────────────────────────────
-            val appPrefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-            appPrefs.edit().apply {
-                remove("jwt_token")               // 로그인 토큰 삭제
-                remove("nickname")                // 닉네임 삭제
-                remove("isAdmin")                 // 관리자 여부 삭제 (있다면)
-                remove("auto_login_enabled")      // 자동로그인 설정 삭제
-                remove("saved_id")                // 저장된 아이디 삭제
-                remove("saved_pw")                // 저장된 비밀번호 삭제
-                apply()
-            }
+            // 로그인 관련 토큰만 삭제 (user_prefs에서)
+            val loginPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+            loginPrefs.edit()
+                .remove("jwt_token")
+                .remove("nickname")
+                .apply()
 
-            // ─────────────────────────────────────────────────────────────────
-            // 2) (기존) “user_prefs”가 따로 있다면, 그쪽에 남은 토큰도 삭제
-            //    만약 “user_prefs”를 안 쓰신다면 이 부분은 지우셔도 됩니다.
-            // ─────────────────────────────────────────────────────────────────
-            val userPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            userPrefs.edit().apply {
-                remove("jwt_token")
-                remove("nickname")
-                apply()
-            }
-
-            // ─────────────────────────────────────────────────────────────────
-            // 3) 로그인 화면으로 이동 (기존 Activity 모두 클리어)
-            // ─────────────────────────────────────────────────────────────────
+            // 로그인 화면으로 이동 (기존 Activity 모두 종료)
             val intent = Intent(requireContext(), LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
