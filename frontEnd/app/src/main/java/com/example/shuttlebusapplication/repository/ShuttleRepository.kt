@@ -19,6 +19,7 @@ class ShuttleRepository {
         ShuttleSchedule(11, "17:15", expectedArrivalTime = "17:30", vehicleCount = 5),
         ShuttleSchedule(12, "18:15", expectedArrivalTime = "18:30", vehicleCount = 5),
         ShuttleSchedule(13, "19:15", expectedArrivalTime = "19:30", vehicleCount = 1)
+
     )
 
 

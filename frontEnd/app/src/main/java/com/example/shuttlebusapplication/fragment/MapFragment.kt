@@ -63,6 +63,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var routePath: List<LatLng>
     private var avgSpeed = 0.0                             // m/sec
     private var currentBusIndex = 0                        // 경로 상 버스 인덱스
+    fun getCurrentBusIndex(): Int {
+        return currentBusIndex
+    }
     private val pollingInterval = 3_000L                   // 3초 주기
     private var pollingJob: Job? = null
 
