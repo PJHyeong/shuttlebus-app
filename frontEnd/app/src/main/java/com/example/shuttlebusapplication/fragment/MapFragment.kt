@@ -557,11 +557,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         mapView.onResume()
+        if ((pollingJob == null || pollingJob?.isCancelled == true)
+            && ::routePath.isInitialized && routePath.isNotEmpty()) {
+            startPolling()
+        }
     }
     override fun onPause() {
+        pollingJob?.cancel()
         super.onPause()
         // locationMarker를 그대로 두고, 추가 업데이트는 하지 않음
-        pollingJob?.cancel()
         mapView.onPause()
     }
     override fun onStop() {
