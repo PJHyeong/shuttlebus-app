@@ -3,7 +3,7 @@ package com.example.shuttlebusapplication.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button  // <-- Button으로 수정
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shuttlebusapplication.R
@@ -12,6 +12,7 @@ import com.example.shuttlebusapplication.model.CommentResponse
 class CommentAdapter(
     private val items: List<CommentResponse>,
     private val isAdmin: Boolean,
+    private val myNickname: String,
     private val onDeleteClick: (CommentResponse) -> Unit,
     private val onEditClick: (CommentResponse) -> Unit
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
@@ -19,8 +20,8 @@ class CommentAdapter(
     inner class CommentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textNickname: TextView = view.findViewById(R.id.textNickname)
         val textComment: TextView = view.findViewById(R.id.textComment)
-        val btnDelete: ImageButton = view.findViewById(R.id.btnDeleteComment)
-        val btnEdit: ImageButton = view.findViewById(R.id.btnEditComment)
+        val btnDelete: Button = view.findViewById(R.id.btnDeleteComment)
+        val btnEdit: Button = view.findViewById(R.id.btnEditComment)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -34,7 +35,9 @@ class CommentAdapter(
         holder.textNickname.text = comment.userId
         holder.textComment.text = comment.content
 
-        if (isAdmin) {
+        val canEditOrDelete = isAdmin || comment.userId == myNickname
+
+        if (canEditOrDelete) {
             holder.btnDelete.visibility = View.VISIBLE
             holder.btnEdit.visibility = View.VISIBLE
             holder.btnDelete.setOnClickListener { onDeleteClick(comment) }
@@ -43,8 +46,9 @@ class CommentAdapter(
             holder.btnDelete.visibility = View.GONE
             holder.btnEdit.visibility = View.GONE
         }
-    }
+        }
 
     override fun getItemCount(): Int = items.size
 }
+
 

@@ -11,6 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.Query
 import retrofit2.http.PATCH
 import retrofit2.Response
+import retrofit2.http.HTTP
 import com.example.shuttlebusapplication.model.UserRequest
 import com.example.shuttlebusapplication.model.UserResponse
 import com.example.shuttlebusapplication.model.LoginRequest
@@ -75,7 +76,7 @@ interface ApiService {
     @GET("comments")
     fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>
 
-    @DELETE("comments/{id}")
+    @HTTP(method = "DELETE", path = "comments/{id}", hasBody = true)
     fun deleteCommentWithBody(
         @Path("id") commentId: String,
         @Body deleteRequest: DeleteCommentRequest

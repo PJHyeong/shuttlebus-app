@@ -48,6 +48,7 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
         commentAdapter = CommentAdapter(
             items = commentList,
             isAdmin = isAdmin,
+            myNickname = nickname,
             onDeleteClick = { comment ->
                 val deleteRequest = DeleteCommentRequest(
                     userId = nickname,
