@@ -45,9 +45,14 @@ class RouteDetailActivity : AppCompatActivity() {
     // ───────────────────────────────────────────────
     private val busMarkerViews = mutableListOf<ImageView>()
 
+    // ───────────────────────────────────────────────
+    // 5) 현재 셔틀 이름 저장용 변수
+    // ───────────────────────────────────────────────
+    private lateinit var shuttleName: String
+
 
     // ───────────────────────────────────────────────
-    // 5) MapFragment 와 동일하게 사용할 경로(Polyline) 관련 필드들
+    // 6) MapFragment 와 동일하게 사용할 경로(Polyline) 관련 필드들
     // ───────────────────────────────────────────────
 
     /** (a) 경로를 구성할 정류장 좌표 목록 (8개) */
@@ -120,11 +125,11 @@ class RouteDetailActivity : AppCompatActivity() {
             finish()
         }
 
-        // ② Intent에서 정류장 리스트 받아오기
+        // ② Intent에서 정류장 리스트와 셔틀 이름 받아오기
         stationList = intent.getStringArrayListExtra("stationList") ?: emptyList()
+        shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
 
-        // ③ 셔틀 이름(sehuttleName) 받아와서 화면 타이틀 세팅
-        val shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
+        // ③ 셔틀 이름 받아와서 화면 타이틀 세팅
         findViewById<TextView>(R.id.textRouteTitle).text = shuttleName
 
         // ④ stationContainer에 정류장 이름 + Bus Icon(ImageView) 초기화
@@ -148,14 +153,18 @@ class RouteDetailActivity : AppCompatActivity() {
         }
 
         // ──────────────────────────────────────────────────
-        // ⑤ 추가: 기점(정류장 0번)에 미리 Bus Icon 보이게 설정
-        //      (백엔드 데이터 없을 때도 기점에 아이콘 표시)
+        // ⑤ 추가: 명지대역 셔틀이 아닐 경우엔 마커를 표시하지 않고, 로직 중단
+        if (shuttleName != "명지대역 셔틀") {
+            // 명지대역 셔틀이 아닐 땐, 기점에도 마커 안 보이도록 그냥 반환
+            return
+        }
+        // 명지대역 셔틀인 경우에만 “기점(정류장 0번)에 아이콘” 미리 표시
         if (busMarkerViews.isNotEmpty()) {
             busMarkerViews[0].visibility = View.VISIBLE
         }
         // ──────────────────────────────────────────────────
 
-        // ⑥ 경로 초기화 → stationRouteIdxMap 구축 → 폴링 시작
+        // ⑥ 명지대역 셔틀일 때만 경로 초기화 → stationRouteIdxMap 구축 → 폴링 시작
         drawRouteAndInit()
     }
 
@@ -164,7 +173,11 @@ class RouteDetailActivity : AppCompatActivity() {
     // ───────────────────────────────────────────────
     override fun onResume() {
         super.onResume()
-        if (::routePath.isInitialized && (pollingJob == null || pollingJob?.isCancelled == true)) {
+        // 명지대역 셔틀일 때만 폴링 재개
+        if (shuttleName == "명지대역 셔틀" &&
+            ::routePath.isInitialized &&
+            (pollingJob == null || pollingJob?.isCancelled == true)
+        ) {
             startPolling()
         }
     }
@@ -174,12 +187,18 @@ class RouteDetailActivity : AppCompatActivity() {
     // ───────────────────────────────────────────────
     override fun onPause() {
         super.onPause()
-        pollingJob?.cancel()
+        // 명지대역 셔틀일 때만 폴링 취소
+        if (shuttleName == "명지대역 셔틀") {
+            pollingJob?.cancel()
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        pollingJob?.cancel()
+        // 명지대역 셔틀일 때만 폴링 취소
+        if (shuttleName == "명지대역 셔틀") {
+            pollingJob?.cancel()
+        }
     }
 
     // ───────────────────────────────────────────────
