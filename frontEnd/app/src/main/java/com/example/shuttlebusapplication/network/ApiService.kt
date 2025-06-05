@@ -1,28 +1,13 @@
-import retrofit2.Call
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.PUT
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Header
-import retrofit2.http.Query
-import retrofit2.Response
-import com.example.shuttlebusapplication.model.UserRequest
-import com.example.shuttlebusapplication.model.UserResponse
-import com.example.shuttlebusapplication.model.LoginRequest
-import com.example.shuttlebusapplication.model.Announcement
-import com.example.shuttlebusapplication.model.LoginResponse
-import com.example.shuttlebusapplication.model.NoticeRequest
-import com.example.shuttlebusapplication.model.LocationResponse
-import com.example.shuttlebusapplication.model.NoticeItem
-import com.example.shuttlebusapplication.model.DirectionResponse
-import com.example.shuttlebusapplication.model.CommentRequest
-import com.example.shuttlebusapplication.model.CommentResponse
+package com.example.shuttlebusapplication.network
 
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.http.*
+import com.example.shuttlebusapplication.model.*
 
 interface ApiService {
-    // 버스, Direction Api 관련
+
+    // ──────────────── 버스, 경로 관련 ────────────────
 
     @GET("bus/latest")
     suspend fun getLatestLocation(): LocationResponse
@@ -34,7 +19,7 @@ interface ApiService {
         @Query("waypoints") waypoints: String?
     ): Response<DirectionResponse>
 
-    // 로그인, 회원가입 관련
+    // ──────────────── 로그인 및 회원가입 ────────────────
 
     @POST("auth/register")
     fun registerUser(@Body userRequest: UserRequest): Call<UserResponse>
@@ -42,13 +27,15 @@ interface ApiService {
     @POST("auth/login")
     fun loginUser(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
+    // ──────────────── 공지사항(Announcements) ────────────────
+
     @GET("announcements")
     fun getAnnouncements(): Call<List<Announcement>>
 
     @DELETE("announcements/{id}")
     fun deleteAnnouncement(@Path("id") announcementId: String): Call<Void>
 
-    // 공지사항 관련
+    // ──────────────── 공지사항(Notices) ────────────────
 
     @GET("notices")
     fun getNotices(): Call<List<NoticeItem>>
@@ -72,10 +59,14 @@ interface ApiService {
         @Path("id") id: String
     ): Call<Void>
 
-    // 댓글 관련
+    // ──────────────── 댓글(Comment) 관련 ────────────────
+
     @POST("comments")
     fun addComment(@Body commentRequest: CommentRequest): Call<CommentResponse>
 
     @GET("comments")
-    fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>  // ✅ 추가된 부분
+    fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>
+
+    @DELETE("comments/{id}")
+    fun deleteComment(@Path("id") commentId: String): Call<Void> // ✅ 댓글 삭제 추가
 }

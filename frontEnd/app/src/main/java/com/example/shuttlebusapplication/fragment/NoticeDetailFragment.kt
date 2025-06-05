@@ -18,19 +18,12 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-/**
- * 공지사항 상세 화면 Fragment
- * SafeArgs로 전달받은 noticeItem을 화면에 표시하고,
- * 댓글 목록을 RecyclerView로 보여준 뒤, 댓글 작성 시 서버에 전송
- */
 class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
 
     private var _binding: FragmentNoticeDetailBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var notice: NoticeItem
-
-    // 댓글을 담을 리스트와 어댑터 변수
     private val commentList = mutableListOf<CommentResponse>()
     private lateinit var commentAdapter: CommentAdapter
 
@@ -38,40 +31,63 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentNoticeDetailBinding.bind(view)
 
-        // 1) SafeArgs로 전달된 NoticeItem 객체 가져오기
+        // SafeArgs로 공지사항 객체 받기
         notice = NoticeDetailFragmentArgs.fromBundle(requireArguments()).noticeItem
 
-        // 2) 뒤로가기 버튼 클릭 리스너
+        // 뒤로가기 버튼
         binding.btnBackDetail.setOnClickListener {
             findNavController().popBackStack()
         }
 
-        // 3) 화면에 공지사항 제목/날짜/내용 세팅
+        // 공지 내용 표시
         binding.textDetailTitle.text = notice.title
         binding.textDetailDate.text = notice.date
         binding.textDetailContent.text = notice.content
 
-        // 4) SharedPreferences에서 닉네임 불러오기
-        val loginPrefs = requireContext()
-            .getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        // SharedPreferences에서 닉네임과 관리자 여부 불러오기
+        val loginPrefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val nickname = loginPrefs.getString("nickname", "알 수 없는 사용자") ?: "알 수 없는 사용자"
+        val isAdmin = loginPrefs.getBoolean("isAdmin", false)
 
-        // 5) RecyclerView에 댓글 목록 세팅
-        commentAdapter = CommentAdapter(commentList)
+        // 댓글 어댑터 설정
+        commentAdapter = CommentAdapter(
+            items = commentList,
+            isAdmin = true, // 관리자 여부와 상관없이 모두 삭제 버튼 보이게 변경
+            onDeleteClick = { comment ->
+                RetrofitClient.apiService.deleteComment(comment.id).enqueue(object : Callback<Void> {
+                    override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                        if (response.isSuccessful) {
+                            val index = commentList.indexOf(comment)
+                            if (index != -1) {
+                                commentList.removeAt(index)
+                                commentAdapter.notifyItemRemoved(index)
+                                Toast.makeText(requireContext(), "댓글이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(requireContext(), "댓글 삭제 실패", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<Void>, t: Throwable) {
+                        Toast.makeText(requireContext(), "댓글 삭제 중 오류 발생", Toast.LENGTH_SHORT).show()
+                    }
+                })
+            }
+        )
+
+
         binding.recyclerComments.apply {
             adapter = commentAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
 
-        // 6) 서버에서 기존 댓글을 불러와서 보여주기
+        // 댓글 불러오기
         fetchComments()
 
-        // 7) 댓글 작성(등록) 버튼 클릭 리스너
-        // XML에서 Button의 android:id="@+id/btnSendComment" 라고 되어 있으므로, binding.btnSendComment 로 참조
+        // 댓글 등록 버튼
         binding.btnSendComment.setOnClickListener {
             val content = binding.editComment.text.toString().trim()
             if (content.isNotEmpty()) {
-                // CommentRequest에 공지 ID, userId(닉네임), content 담아서 API 호출
                 val commentReq = CommentRequest(
                     announcementId = notice.id,
                     userId = nickname,
@@ -85,29 +101,18 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
                         ) {
                             if (response.isSuccessful) {
                                 response.body()?.let { newComment ->
-                                    // 등록 성공 시 EditText 초기화
                                     binding.editComment.text.clear()
-                                    // 리스트에 댓글 추가 및 어댑터 갱신
                                     commentList.add(newComment)
                                     commentAdapter.notifyItemInserted(commentList.size - 1)
-                                    // 스크롤을 마지막 댓글로 이동
                                     binding.recyclerComments.scrollToPosition(commentList.size - 1)
                                 }
                             } else {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "댓글 작성에 실패했습니다.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(requireContext(), "댓글 작성에 실패했습니다.", Toast.LENGTH_SHORT).show()
                             }
                         }
 
                         override fun onFailure(call: Call<CommentResponse>, t: Throwable) {
-                            Toast.makeText(
-                                requireContext(),
-                                "댓글 작성 중 오류가 발생했습니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            Toast.makeText(requireContext(), "댓글 작성 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                         }
                     })
             } else {
@@ -116,9 +121,6 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
         }
     }
 
-    /**
-     * 서버에서 해당 공지글의 댓글 목록을 불러와 RecyclerView에 표시하는 메서드
-     */
     private fun fetchComments() {
         RetrofitClient.apiService.getComments(notice.id)
             .enqueue(object : Callback<List<CommentResponse>> {
@@ -133,20 +135,12 @@ class NoticeDetailFragment : Fragment(R.layout.fragment_notice_detail) {
                             commentAdapter.notifyDataSetChanged()
                         }
                     } else {
-                        Toast.makeText(
-                            requireContext(),
-                            "댓글을 불러오는데 실패했습니다.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "댓글을 불러오는데 실패했습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<List<CommentResponse>>, t: Throwable) {
-                    Toast.makeText(
-                        requireContext(),
-                        "댓글 불러오기 중 오류가 발생했습니다.",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(requireContext(), "댓글 불러오기 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
                 }
             })
     }

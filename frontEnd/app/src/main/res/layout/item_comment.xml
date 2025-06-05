@@ -2,21 +2,39 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/textNickname"
-        android:layout_width="wrap_content"
+    <!-- 왼쪽: 닉네임 + 댓글 내용 -->
+    <LinearLayout
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="닉네임"
-        android:textStyle="bold"
-        android:textColor="#333333" />
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textComment"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="댓글 내용"
-        android:layout_marginTop="4dp" />
+        <TextView
+            android:id="@+id/textNickname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="닉네임"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
+        <TextView
+            android:id="@+id/textComment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="댓글 내용"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnDeleteComment"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@android:drawable/ic_menu_delete"
+        android:background="?android:selectableItemBackgroundBorderless"
+        android:contentDescription="댓글 삭제"
+        android:visibility="visible" />
 </LinearLayout>

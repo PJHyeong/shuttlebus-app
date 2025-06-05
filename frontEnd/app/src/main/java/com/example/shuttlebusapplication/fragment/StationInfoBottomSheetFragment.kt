@@ -339,7 +339,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
                 triggerAtMillis,
                 pendingIntent
             )
-            Toast.makeText(requireContext(), "도착 3분 전 알림이 예약되었습니다.", Toast.LENGTH_SHORT).show()
+
         } catch (se: SecurityException) {
             // 정확한 알람 권한이 없을 때 “설정 화면”으로 유도
             Toast.makeText(requireContext(), "정확한 알림 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
