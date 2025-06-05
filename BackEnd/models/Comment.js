@@ -1,10 +1,11 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
-const CommentSchema = new mongoose.Schema({
-    announcementId: { type: mongoose.Schema.Types.ObjectId, ref: 'Announcement', required: true }, 
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, 
-    content: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+const CommentSchema = new Schema({
+  announcementId: { type: mongoose.Types.ObjectId, ref: "Announcement", required: true },
+  userId:         { type: String, required: true },   // ObjectId → String(닉네임) 으로 변경
+  content:        { type: String, required: true },
+  createdAt:      { type: Date,   default: Date.now }
 });
 
-module.exports = mongoose.model('Comment', CommentSchema);
+module.exports = mongoose.model("Comment", CommentSchema);

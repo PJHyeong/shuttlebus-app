@@ -1,18 +1,52 @@
 const express = require('express');
-const Comment = require('../models/Comment'); 
+const Comment = require('../models/Comment');
 const router = express.Router();
 
-// 댓글 추가 API
+// 댓글 추가 라우터
 router.post('/comments', async (req, res) => {
-    const { announcementId, userId, content } = req.body;
+  const { announcementId, userId, content } = req.body;
 
-    try {
-        const comment = new Comment({ announcementId, userId, content });
-        await comment.save();
-        res.status(201).json(comment);
-    } catch (error) {
-        res.status(500).json({ message: '댓글 추가 실패', error });
+  try {
+    // userId는 이제 String 타입(닉네임)이므로 그대로 사용
+    const comment = new Comment({ announcementId, userId, content });
+    await comment.save();
+
+    // 저장된 comment 객체를 가공하여 응답
+    return res.status(201).json({
+      id:        comment._id,
+      userId:    comment.userId,
+      content:   comment.content,
+      createdAt: comment.createdAt
+    });
+  } catch (error) {
+    console.error('댓글 추가 실패:', error);
+    return res.status(500).json({ message: '댓글 추가 실패', error });
+  }
+});
+
+
+// 댓글 삭제 라우터
+router.delete('/comments/:id', async (req, res) => {
+  const commentId = req.params.id;
+  const { userId, userRole } = req.body; // userRole: 'admin'이면 관리자
+
+  try {
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
     }
+
+    // 작성자 본인 또는 관리자만 삭제 가능
+    if (comment.userId !== userId && userRole !== 'admin') {
+      return res.status(403).json({ message: '삭제 권한이 없습니다.' });
+    }
+
+    await Comment.findByIdAndDelete(commentId);
+    return res.status(200).json({ message: '댓글이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('댓글 삭제 실패:', error);
+    return res.status(500).json({ message: '댓글 삭제 실패', error });
+  }
 });
 
 
