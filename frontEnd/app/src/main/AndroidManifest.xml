@@ -2,10 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 권한 선언 -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
@@ -22,24 +23,25 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- 회원가입 페이지 -->
         <activity
             android:name=".SignupActivity"
             android:exported="false" />
 
-        <!-- 로그인 페이지 -->
         <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:label="@string/title_activity_login"
             android:theme="@style/Theme.ShuttleBusApplication" />
 
-        <!-- 닉네임 입력 페이지 -->
         <activity
             android:name=".NicknameActivity"
             android:exported="false" />
 
-        <!-- 앱 시작화면 -->
+        <service
+            android:name=".RouteTimerService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -51,31 +53,26 @@
             </intent-filter>
         </activity>
 
-        <!-- 메인 페이지 -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- RouteDetailActivity -->
         <activity
             android:name=".RouteDetailActivity"
             android:exported="false" />
 
-        <!-- 네이버 지도 API 키 -->
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="mw2k7g2tym" />
 
-        <!-- 기존에 있던 AlarmReceiver (만약 사용 중이라면 그대로 두시고, 아니라면 삭제해도 됩니다) -->
         <receiver
             android:name=".AlarmReceiver"
             android:exported="false" />
 
-        <!-- ★워치: 셔틀 ETA 알림용 NotificationReceiver 등록 ★ -->
         <receiver
             android:name=".fragment.NotificationReceiver"
             android:exported="true" />
-    </application>
 
+    </application>
 </manifest>

@@ -1,5 +1,4 @@
 plugins {
-
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -49,8 +48,8 @@ android {
 
 dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
-
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
     // Compose
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,7 +58,6 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
 
     // Navigation (Compose 또는 Fragment 방식 둘 다 사용 가능)
     val nav_version = "2.8.9"
@@ -84,6 +82,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
     // Lifecycle KTX (lifecycleScope)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LocalBroadcastManager (서비스 → Activity 간 로컬 브로드캐스트)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.0.0")
+    // ─────────────────────────────────────────────────────────────────────
 
     // 테스트
     testImplementation(libs.junit)

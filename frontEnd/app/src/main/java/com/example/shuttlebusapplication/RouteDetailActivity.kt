@@ -3,46 +3,131 @@
 package com.example.shuttlebusapplication
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.shuttlebusapplication.model.LocationResponse
+import com.example.shuttlebusapplication.network.RetrofitClient
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.overlay.PolylineOverlay
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.*
 
 class RouteDetailActivity : AppCompatActivity() {
 
-    // "정류장 목록" 컨테이너 (vertical LinearLayout)
+    // ───────────────────────────────────────────────
+    // 1) Retrofit API 호출용 인스턴스
+    // ───────────────────────────────────────────────
+    private val busApi = RetrofitClient.apiService
+
+    // ───────────────────────────────────────────────
+    // 2) 화면에 세로로 정류장 리스트를 그릴 LinearLayout
+    //    (activity_route_detail.xml 에 id="stationListContainer" 로 정의)
+    // ───────────────────────────────────────────────
     private lateinit var stationContainer: LinearLayout
 
-    // 인텐트로 전달된 정류장 리스트
+    // ───────────────────────────────────────────────
+    // 3) Intent 로 넘어온 “정류장 이름 리스트”
+    // ───────────────────────────────────────────────
     private lateinit var stationList: List<String>
-    // 인텐트로 전달된 최초 버스 인덱스 (MapFragment에서 RouteDetail로 넘겨준 값, 보통 1)
-    private var startBusIndex: Int = 0
 
-    // "각 정류장마다 표시할 버스 아이콘 ImageView" 목록
+    // ───────────────────────────────────────────────
+    // 4) “각 정류장 옆에 표시할 ImageView(버스 아이콘)” 모아두는 리스트
+    // ───────────────────────────────────────────────
     private val busMarkerViews = mutableListOf<ImageView>()
 
-    // 순차 이동을 제어하는 Job
-    private var sequenceJob: Job? = null
 
+    // ───────────────────────────────────────────────
+    // 5) MapFragment 와 동일하게 사용할 경로(Polyline) 관련 필드들
+    // ───────────────────────────────────────────────
+
+    /** (a) 경로를 구성할 정류장 좌표 목록 (8개) */
+    private val locations = listOf(
+        LatLng(37.2242, 127.1876),       // 0: 기점(버스관리사무소)
+        LatLng(37.2305, 127.1881),       // 1: 이마트 앞
+        LatLng(37.233863, 127.188726),   // 2: 역북동 행정복지센터 건너편
+        LatLng(37.238471, 127.189537),   // 3: 명지대역 사거리
+        LatLng(37.234104, 127.188628),   // 4: 역북동 행정복지센터 앞
+        LatLng(37.2313, 127.1882),       // 5: 광장 정류장
+        LatLng(37.2223, 127.1889),       // 6: 명진당 앞
+        LatLng(37.2195, 127.1836)        // 7: 3공학관 앞
+    )
+
+    /** (b) 정류장 이름 리스트 (MapFragment 와 동일) */
+    private val stationNames = listOf(
+        "기점(버스관리사무소)",
+        "이마트 앞",
+        "역북동 행정복지센터 건너편",
+        "명지대역 사거리",
+        "역북동 행정복지센터 앞",
+        "광장 정류장",
+        "명진당 앞",
+        "3공학관 앞"
+    )
+
+    /** (c) Direction API 호출 결과 → 파싱 후 저장할 LatLng 경로 */
+    private lateinit var routePath: List<LatLng>
+
+    /** (d) PolylineOverlay (지도를 실제로 그릴 때 필요하지만, 여기서는 내부 로직용으로만 남겨둠) */
+    private var routeLine: PolylineOverlay? = null
+
+    /** (e) 평균 속도 (m/sec) */
+    private var avgSpeed = 0.0
+
+    /** (f) 회전(턴) 지점 인덱스 */
+    private var pivotRouteIdx: Int = 0
+
+    /** (g) guideList: Direction API 가 보내준 “회전 정보 리스트” */
+    private lateinit var guideList: List<com.example.shuttlebusapplication.model.Guide>
+
+    /** (h) cumDurationMap: 경로 인덱스별 누적 시간(밀리초) 매핑 */
+    private lateinit var cumDurationMap: Map<Int, List<Long>>
+
+    /** (i) summary 정보의 최종 반환점 인덱스 */
+    private var summaryGoalIdx: Int = 0
+
+    /** (j) 현재 버스가 경로상 어느 인덱스에 스냅됐는지 저장 */
+    private var currentBusIndex = 0
+
+    /** (k) 버스 좌표를 3초마다 갱신할 폴링 주기 (밀리초) */
+    private val pollingInterval = 3_000L
+
+    /** (l) 폴링 Job */
+    private var pollingJob: Job? = null
+
+    /** (m) “정류장 ordinal → routePath 상 인덱스 리스트” 매핑 */
+    private val stationRouteIdxMap = mutableMapOf<Int, List<Int>>()
+
+
+    // ───────────────────────────────────────────────
+    // onCreate: 레이아웃 세팅 + Intent 데이터 수신 + UI 초기화 + 경로 초기화/폴링 시작
+    // ───────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_route_detail)
 
-        // 1) 인텐트에서 stationList, shuttleName, busIndex 값 받아오기
-        stationList = intent.getStringArrayListExtra("stationList") ?: emptyList()
-        val shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
-        startBusIndex = intent.getIntExtra("busIndex", 0)
+        // ① 뒤로가기 버튼 리스너: 누르면 Activity 종료 → 바텀시트(이전 화면)로 복귀
+        findViewById<ImageButton>(R.id.btnBackToBottomSheet).setOnClickListener {
+            finish()
+        }
 
-        // 2) 타이틀(셔틀명) 세팅
+        // ② Intent에서 정류장 리스트 받아오기
+        stationList = intent.getStringArrayListExtra("stationList") ?: emptyList()
+
+        // ③ 셔틀 이름(sehuttleName) 받아와서 화면 타이틀 세팅
+        val shuttleName = intent.getStringExtra("shuttleName") ?: "셔틀 노선"
         findViewById<TextView>(R.id.textRouteTitle).text = shuttleName
 
-        // 3) stationContainer에 stationList를 순서대로 inflate + 초기 상태: 모든 버스 아이콘 GONE
+        // ④ stationContainer에 정류장 이름 + Bus Icon(ImageView) 초기화
         stationContainer = findViewById(R.id.stationListContainer)
         busMarkerViews.clear()
         stationList.forEachIndexed { index, stationName ->
@@ -52,90 +137,265 @@ class RouteDetailActivity : AppCompatActivity() {
                 false
             )
             val textView = itemLayout.findViewById<TextView>(R.id.textStationName)
-            val busIcon = itemLayout.findViewById<ImageView>(R.id.busMarker)
+            val busIcon  = itemLayout.findViewById<ImageView>(R.id.busMarker)
 
             textView.text = stationName
+            // 우선 모두 숨김 상태로 추가
             busIcon.visibility = View.GONE
+
             busMarkerViews.add(busIcon)
             stationContainer.addView(itemLayout)
         }
 
-        // 4) "이마트 앞(1)" 인덱스로 RouteDetail을 열었으므로, 첫 화면에서 이마트 앞에 마커 보이게 설정
-        if (startBusIndex in busMarkerViews.indices) {
-            busMarkerViews[startBusIndex].visibility = View.VISIBLE
+        // ──────────────────────────────────────────────────
+        // ⑤ 추가: 기점(정류장 0번)에 미리 Bus Icon 보이게 설정
+        //      (백엔드 데이터 없을 때도 기점에 아이콘 표시)
+        if (busMarkerViews.isNotEmpty()) {
+            busMarkerViews[0].visibility = View.VISIBLE
         }
+        // ──────────────────────────────────────────────────
 
-        // 5) 이후에는 "수동 시퀀스"로 버스 아이콘을 다음 정류장으로 옮김
-        //    (단, Activity가 살아 있는 동안에만 작동하도록 lifecycleScope를 사용)
-        startSequentialBusMovement()
+        // ⑥ 경로 초기화 → stationRouteIdxMap 구축 → 폴링 시작
+        drawRouteAndInit()
+    }
 
-        // 6) 뒤로가기 버튼 처리 (만약 XML에 버튼이 있다면)
-        findViewById<View>(R.id.btnBackToBottomSheet)?.setOnClickListener {
-            finish()
+    // ───────────────────────────────────────────────
+    // onResume: 화면 재진입 시 폴링이 꺼져 있으면 재시작
+    // ───────────────────────────────────────────────
+    override fun onResume() {
+        super.onResume()
+        if (::routePath.isInitialized && (pollingJob == null || pollingJob?.isCancelled == true)) {
+            startPolling()
         }
+    }
+
+    // ───────────────────────────────────────────────
+    // onPause: 화면 벗어날 때 폴링 취소 (옵션)
+    // ───────────────────────────────────────────────
+    override fun onPause() {
+        super.onPause()
+        pollingJob?.cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Activity가 소멸될 때 시퀀스 코루틴도 같이 취소
-        sequenceJob?.cancel()
+        pollingJob?.cancel()
     }
 
-    /**
-     * “이마트 앞(인덱스 1) → 그 다음 정류장(인덱스 2) … → 마지막 정류장(인덱스 7) → 기점(인덱스 0)” 순서로
-     * 지정된 딜레이(밀리초)만큼 기다린 뒤 버스 아이콘을 이동시키는 로직
-     */
-    private fun startSequentialBusMovement() {
-        // 이미 실행 중인 시퀀스가 있으면 취소
-        sequenceJob?.cancel()
+    // ───────────────────────────────────────────────
+    // drawRouteAndInit(): Direction API 호출 → routePath 생성 → stationRouteIdxMap 구축 → startPolling()
+    // ───────────────────────────────────────────────
+    private fun drawRouteAndInit() {
+        lifecycleScope.launch {
+            try {
+                // (1) “lon,lat” 문자열 만들기 (MapFragment와 동일)
+                val coordStrings = locations.map { "${it.longitude},${it.latitude}" }
+                val start = coordStrings.first()
+                val goal  = coordStrings.last()
+                val waypoints = coordStrings
+                    .drop(1)
+                    .dropLast(1)
+                    .takeIf { it.isNotEmpty() }
+                    ?.joinToString("|")
 
-        // 정해진 “각 정류장 사이 대기 시간(밀리초)”을 설정 (순서: 1→2, 2→3, 3→4, 4→5, 5→6, 6→7, 7→0)
-        val delaysInMs = listOf(
-            70_000L,   // 이마트 앞(1)→역북동 행정복지센터 건너편(2)까지 70초 대기
-            100_000L,  // (2)→명지대역 사거리(3)까지 100초
-            200_000L,  // (3)→역북동 행정복지센터 앞(4)까지 200초
-            60_000L,   // (4)→광장 정류장(5)까지 60초
-            190_000L,  // (5)→명진당 앞(6)까지 190초
-            170_000L,  // (6)→3공학관 앞(7)까지 170초
-            60_000L    // (7)→기점(0)까지 60초
-        )
-
-        // “이마트 앞(인덱스 1)”부터 시작해서 위 delays 순서대로 이동
-        // "이마트 앞(1)→역북동 행정복지센터 건너편(2)→..." 식으로 인덱스 시퀀스를 미리 만들어둡니다.
-        val sequenceOfStationIndices = listOf(
-            1,  // 이미 이마트 앞(1)에 있음
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            0   // 마지막에는 기점(0)으로 돌아옴
-        )
-
-        sequenceJob = lifecycleScope.launch {
-            // 0번째는 이미 화면에 표시했으므로 idx = 1부터 처리
-            for (i in 1 until sequenceOfStationIndices.size) {
-                // (1) 이전 마커 숨김
-                val prevIdx = sequenceOfStationIndices[i - 1]
-                if (prevIdx in busMarkerViews.indices) {
-                    busMarkerViews[prevIdx].visibility = View.GONE
+                // (2) Retrofit 호출: Direction API 호출
+                val resp = RetrofitClient.directionService.getRoute(
+                    start = start,
+                    goal = goal,
+                    waypoints = waypoints
+                )
+                if (!resp.isSuccessful) {
+                    Log.e("RouteDetail", "Direction API error: code=${resp.code()}")
+                    Toast.makeText(
+                        this@RouteDetailActivity,
+                        "경로 정보를 가져올 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
                 }
 
-                // (2) delaysInMs[i - 1] 만큼 대기 (예: i=1이면 delaysInMs[0]=70_000L 대기)
-                val waitTime = delaysInMs.getOrNull(i - 1) ?: 0L
-                if (waitTime > 0 && isActive) {
-                    delay(waitTime)
+                // (3) 최적 경로 꺼내기
+                val optimal = resp.body()?.route?.traoptimal?.firstOrNull()
+                val rawPath = optimal?.path
+                if (rawPath.isNullOrEmpty()) {
+                    Toast.makeText(
+                        this@RouteDetailActivity,
+                        "경로 데이터가 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
                 }
 
-                // (3) 새로운 위치(현재 인덱스) 마커 보이기
-                val newIdx = sequenceOfStationIndices[i]
-                if (newIdx in busMarkerViews.indices) {
-                    busMarkerViews[newIdx].visibility = View.VISIBLE
+                // (4) “[lon, lat] → LatLng 리스트”로 변환
+                routePath = rawPath.map { LatLng(it[1], it[0]) }
+
+                // (5) 평균 속도 계산 (m/sec)
+                optimal.summary?.let {
+                    avgSpeed = it.distance.toDouble() / (it.duration.toDouble() / 1000.0)
                 }
+
+                // (6) guideList / pivotRouteIdx 계산
+                guideList = optimal.guide.orEmpty()
+                val leftEvents = guideList.filter { it.type == 2 }
+                pivotRouteIdx = when {
+                    leftEvents.size >= 2 -> leftEvents[2].pointIndex
+                    leftEvents.isNotEmpty() -> leftEvents.last().pointIndex
+                    else -> snapToRoute(locations[3]).second
+                }
+
+                // (7) cumDurationMap 계산 (회전 이벤트 기준 누적 시간)
+                val temp = mutableMapOf<Int, MutableList<Long>>()
+                var acc = 0L
+                guideList.forEach { g ->
+                    acc += g.duration
+                    if (g.type == 87 || g.type == 88) {
+                        temp.getOrPut(g.pointIndex) { mutableListOf() }
+                            .add(acc)
+                    }
+                }
+                optimal.summary?.let { summ ->
+                    val goalIdx = summ.goal.pointIndex
+                    val goalMs = summ.duration.toLong()
+                    summaryGoalIdx = goalIdx
+                    temp.getOrPut(goalIdx) { mutableListOf() }.add(goalMs)
+                }
+                cumDurationMap = temp
+
+                // (8) “정류장 ordinal → routePath 인덱스 리스트” 계산
+                initStationRouteIdxMap()
+
+                // (9) 폴링 시작
+                startPolling()
+
+            } catch (e: Exception) {
+                Log.e("RouteDetail", "drawRoute 예외", e)
+                Toast.makeText(
+                    this@RouteDetailActivity,
+                    "경로 처리 오류: ${e.localizedMessage}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            // 반복이 끝나면 sequenceJob이 자동으로 취소됩니다.
-            // 필요한 경우 여기서 추가 동작을 넣을 수도 있습니다.
         }
+    }
+
+    // ───────────────────────────────────────────────
+    // initStationRouteIdxMap(): “정류장 좌표 → routePath 인덱스” 매핑
+    // ───────────────────────────────────────────────
+    private fun initStationRouteIdxMap() {
+        stationRouteIdxMap.clear()
+
+        locations.forEachIndexed { ordinal, loc ->
+            // (1) routePath에서 loc과 5m 이하로 가까운 포인트 인덱스 모으기
+            val idxList = routePath.mapIndexedNotNull { i, pt ->
+                if (haversine(pt, loc) < 5.0) i else null
+            }.ifEmpty {
+                // 가까운 포인트가 없으면 snapToRoute를 통해 하나라도 가져오기
+                listOf(snapToRoute(loc).second)
+            }
+
+            // (2) 마지막 정류장인 경우 summaryGoalIdx도 포함
+            val finalIdxList = if (ordinal == locations.lastIndex) {
+                idxList + summaryGoalIdx
+            } else {
+                idxList
+            }
+
+            stationRouteIdxMap[ordinal] = finalIdxList
+        }
+    }
+
+    // ───────────────────────────────────────────────
+    // startPolling(): 3초마다 서버에서 LocationResponse 받아와 LatLng 생성 → snapToRoute → currentBusIndex 갱신 → updateBusMarkerView
+    // ───────────────────────────────────────────────
+    private fun startPolling() {
+        pollingJob = lifecycleScope.launch {
+            while (isActive) {
+                try {
+                    // ① Suspend함수 호출: getLatestLocation() → LocationResponse
+                    val loc: LocationResponse = busApi.getLatestLocation()
+
+                    // ② LocationResponse가 (val lat: Double, val lng: Double)이므로 이를 사용
+                    val rawBusLatLng = LatLng(loc.lat, loc.lng)
+
+                    // ③ snapToRoute 호출 → snappedLatLng, 인덱스 계산
+                    val (snapped, idx) = if (currentBusIndex < pivotRouteIdx) {
+                        snapToRoute(rawBusLatLng, minIdx = 0, maxIdx = pivotRouteIdx)
+                    } else {
+                        snapToRoute(rawBusLatLng, minIdx = pivotRouteIdx, maxIdx = routePath.lastIndex)
+                    }
+                    currentBusIndex = idx
+
+                    // ④ UI 갱신: runOnUiThread { updateBusMarkerView() }
+                    runOnUiThread {
+                        updateBusMarkerView()
+                    }
+
+                } catch (e: Exception) {
+                    Log.e("RouteDetail", "폴링 예외", e)
+                }
+                delay(pollingInterval)
+            }
+        }
+    }
+
+    // ───────────────────────────────────────────────
+    // updateBusMarkerView(): currentBusIndex 기준으로 ImageView(VISIBLE/GONE) 전환
+    // ───────────────────────────────────────────────
+    private fun updateBusMarkerView() {
+        // (1) “currentBusIndex ≥ routeIdx”인 모든 ordinal 필터링
+        val passedOrdinals = stationRouteIdxMap.entries
+            .filter { (_, idxList) ->
+                idxList.any { routeIdx -> currentBusIndex >= routeIdx }
+            }
+            .map { entry -> entry.key }
+
+        // (2) 그중 가장 큰 ordinal 선택, 없으면 0
+        val currentOrdinal = passedOrdinals.maxOrNull() ?: 0
+
+        // (3) 모든 ImageView를 숨기고
+        busMarkerViews.forEach { it.visibility = View.GONE }
+
+        // (4) 해당 ordinal의 ImageView만 보이게
+        if (currentOrdinal in busMarkerViews.indices) {
+            busMarkerViews[currentOrdinal].visibility = View.VISIBLE
+        }
+    }
+
+    // ───────────────────────────────────────────────
+    // snapToRoute(): raw(LatLng) → routePath 상 가장 가까운 지점으로 스냅 → (LatLng, index) 반환
+    // ───────────────────────────────────────────────
+    private fun snapToRoute(
+        raw: LatLng,
+        minIdx: Int? = null,
+        maxIdx: Int? = null
+    ): Pair<LatLng, Int> {
+        var bestIdx = minIdx ?: 0
+        var bestDist = Double.MAX_VALUE
+
+        routePath.forEachIndexed { i, pt ->
+            if ((minIdx != null && i < minIdx) || (maxIdx != null && i > maxIdx)) return@forEachIndexed
+            val d = haversine(raw, pt)
+            if (d < bestDist) {
+                bestDist = d
+                bestIdx = i
+            }
+        }
+        return routePath[bestIdx] to bestIdx
+    }
+
+    // ───────────────────────────────────────────────
+    // haversine(): 두 LatLng 간 거리 계산 (미터 단위)
+    // ───────────────────────────────────────────────
+    private fun haversine(a: LatLng, b: LatLng): Double {
+        val R = 6371000.0 // 지구 반지름(m)
+        val dLat = Math.toRadians(a.latitude - b.latitude)
+        val dLon = Math.toRadians(a.longitude - b.longitude)
+        val lat1 = Math.toRadians(a.latitude)
+        val lat2 = Math.toRadians(b.latitude)
+
+        val sinDlat = sin(dLat / 2)
+        val sinDlon = sin(dLon / 2)
+        val h = sinDlat * sinDlat + sinDlon * sinDlon * cos(lat1) * cos(lat2)
+        return 2 * R * atan2(sqrt(h), sqrt(1 - h))
     }
 }
