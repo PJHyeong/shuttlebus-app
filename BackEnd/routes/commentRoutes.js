@@ -68,6 +68,35 @@ router.get('/comments', async (req, res) => {
   }
 });
 
+router.patch('/comments/:id', async (req, res) => {
+  const commentId = req.params.id;
+  const { userId, userRole, content } = req.body; // userRole: 'admin'이면 관리자
+
+  try {
+    const comment = await Comment.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // 작성자 본인 또는 관리자만 수정 가능
+    if (comment.userId !== userId && userRole !== 'admin') {
+      return res.status(403).json({ message: '수정 권한이 없습니다.' });
+    }
+
+    comment.content = content;
+    await comment.save();
+
+    return res.status(200).json({
+      id:        comment._id,
+      userId:    comment.userId,
+      content:   comment.content,
+      createdAt: comment.createdAt
+    });
+  } catch (error) {
+    console.error('댓글 수정 실패:', error);
+    return res.status(500).json({ message: '댓글 수정 실패', error });
+  }
+});
 
 
 module.exports = router;
