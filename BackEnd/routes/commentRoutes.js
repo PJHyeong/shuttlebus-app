@@ -49,5 +49,25 @@ router.delete('/comments/:id', async (req, res) => {
   }
 });
 
+// 댓글 목록 조회 라우터
+router.get('/comments', async (req, res) => {
+  const { announcementId } = req.query;
+
+  try {
+    const comments = await Comment.find({ announcementId }).sort({ createdAt: 1 });
+    const result = comments.map(c => ({
+      id:        c._id,
+      userId:    c.userId,
+      content:   c.content,
+      createdAt: c.createdAt
+    }));
+    return res.status(200).json(result);
+  } catch (err) {
+    console.error('댓글 조회 실패:', err);
+    return res.status(500).json({ message: '댓글 조회 실패', error: err });
+  }
+});
+
+
 
 module.exports = router;
