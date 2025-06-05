@@ -29,12 +29,27 @@
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
-    <ImageButton
+    <Button
         android:id="@+id/btnDeleteComment"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:src="@android:drawable/ic_menu_delete"
-        android:background="?android:selectableItemBackgroundBorderless"
-        android:contentDescription="댓글 삭제"
-        android:visibility="visible" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="삭제"
+        android:textSize="14sp"
+        android:textColor="#FF0000"
+        android:background="?android:selectableItemBackground"
+        android:padding="4dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="댓글 삭제" />
+
+    <Button
+        android:id="@+id/btnEditComment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="수정"
+        android:textSize="14sp"
+        android:textColor="#0066CC"
+        android:background="?android:selectableItemBackground"
+        android:padding="4dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="댓글 수정" />
 </LinearLayout>

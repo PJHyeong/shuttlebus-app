@@ -11,14 +11,16 @@ import com.example.shuttlebusapplication.model.CommentResponse
 
 class CommentAdapter(
     private val items: List<CommentResponse>,
-    private val isAdmin: Boolean, // ← 관리자 여부 전달
-    private val onDeleteClick: (CommentResponse) -> Unit // ← 삭제 콜백 전달
+    private val isAdmin: Boolean,
+    private val onDeleteClick: (CommentResponse) -> Unit,
+    private val onEditClick: (CommentResponse) -> Unit
 ) : RecyclerView.Adapter<CommentAdapter.CommentViewHolder>() {
 
     inner class CommentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textNickname: TextView = view.findViewById(R.id.textNickname)
         val textComment: TextView = view.findViewById(R.id.textComment)
-        val btnDelete: ImageButton = view.findViewById(R.id.btnDeleteComment) // ← 삭제 버튼 추가
+        val btnDelete: ImageButton = view.findViewById(R.id.btnDeleteComment)
+        val btnEdit: ImageButton = view.findViewById(R.id.btnEditComment)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -32,16 +34,17 @@ class CommentAdapter(
         holder.textNickname.text = comment.userId
         holder.textComment.text = comment.content
 
-        // 관리자만 삭제 버튼 보이게 처리
         if (isAdmin) {
             holder.btnDelete.visibility = View.VISIBLE
-            holder.btnDelete.setOnClickListener {
-                onDeleteClick(comment)
-            }
+            holder.btnEdit.visibility = View.VISIBLE
+            holder.btnDelete.setOnClickListener { onDeleteClick(comment) }
+            holder.btnEdit.setOnClickListener { onEditClick(comment) }
         } else {
             holder.btnDelete.visibility = View.GONE
+            holder.btnEdit.visibility = View.GONE
         }
     }
 
     override fun getItemCount(): Int = items.size
 }
+
