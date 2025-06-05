@@ -41,5 +41,15 @@
             android:contentDescription="팝업으로 돌아가기"
             android:adjustViewBounds="true"
             android:scaleType="fitCenter" />
+
+        <ImageView
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="24dp"
+            android:src="@drawable/banner2"
+            android:contentDescription="언제와 배너"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
     </LinearLayout>
 </ScrollView>
