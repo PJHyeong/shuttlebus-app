@@ -4,10 +4,14 @@
 
 * ✅서버 실행 (Express 서버 실행 후 MongoDB에 연결)
 * ✅인증기능 (회원가입 & 로그인) => 외부 API로 변경 고민 중
+* ✅관리자 역할 추가
+* ✅공지사항 CRUD 
+* ✅공지사항 댓글
+* ✅데이터베이스(MongoDB) 설계
+* ✅ngrok로 다른 네트워크에서도 앱 작동하게(PORT:5000)     
+*      
+* ✅셔틀버스 정류장 기능 (정류장 선택 후 알림 받을 수 있도록)
 * ✅실시간 버스 위치 데이터를 받아 지도 상에 표시
-* ⚠셔틀버스 정류장 기능 (정류장 선택 후 알림 받을 수 있도록)
-* ⚠공지사항 관리
-
 
 ### ⚙️ 개발 환경
 - **백엔드**       
@@ -22,22 +26,21 @@
 ```
          shuttle-bus-backend/    
         │── config/    
-        │   ├── db.js             # ✅데이터베이스 연결 설정 - 25/04/01      
-        │   ├── firebase.js             # ✅데이터베이스 연결 설정(firebase) - 25/05/10      
+        │   ├── db.js                 # 데이터베이스 연결 설정           
         │── models/    
-        │   ├── User.js           # ✅유저 모델 - 25/04/02    
-        │   ├── Reservation.js   # ✅알림 모델 - 25/05/10    
-        │   ├── BusStop.js        # 정류장 모델    
-        │   ├── Announcement.js   # ✅공지사항 모델 - 25/05/10       
+        │   ├── User.js               # 유저 모델           
+        │   ├── Reservation.js        # 알림 모델           
+        │   ├── Buslocation.js            # 셔들버스 모델
+        │   ├── Notice.js       # 공지사항 모델                
+        │   ├── Comment.js       # 공지사항 댓글 모델         
         │── routes/       
-        │   ├── authRoutes.js     # ✅로그인 및 회원가입 라우트 - 25/05/10(email->studentid)          
-        │   ├── busStopRoutes.js  # 셔틀버스 정류장 관련 라우트       
-        │   ├── reservations.js # ✅알림 관련 라우트 - 25/05/10       
-        │   ├── notices.js # ✅공지사항 관련 라우트 - 25/05/10       
-        │── middleware/       
-        │   ├── authMiddleware.js # ✅관리자 인증 미들웨어 - 25/05/10
-        │── cron/    
-        │   ├── reservationCron.js           # ✅예약된 시간마다 알림 전송 - 25/05/10         
-        │── server.js             # ✅메인 서버 파일 - 25/05/10       
-        │── .env                  # ✅환경 변수 설정 -  25/04/01     
+        │   ├── authRoutes.js         # 로그인 및 회원가입 라우트        
+        │   ├── buslocationRoutes.js      # 셔틀버스 위치 관련 라우트                    
+        │   ├── reservations.js       # 알림 관련 라우트            
+        │   ├── notices.js            # 공지사항 관련 라우트
+        │   ├── commentRoutes.js            # 공지사항 댓글 관련 라우트       
+        │── middlewares/       
+        │   ├── adminMiddleware.js     # 관리자 인증 미들웨어           
+        │── server.js                 # 메인 서버 파일       
+        │── .env                      # 환경 변수 설정           
 ```
