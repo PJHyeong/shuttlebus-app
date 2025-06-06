@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:paddingVertical="12dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:background="@android:color/white">
 
     <!-- 좌측: 선과 점 -->
     <FrameLayout
@@ -12,21 +13,14 @@
         android:layout_height="match_parent"
         android:layout_marginStart="12dp">
 
-        <!-- 세로선 -->
-        <View
-            android:id="@+id/line"
-            android:layout_width="4dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_horizontal"
-            android:background="#888888" />
 
         <!-- 정류장 점 -->
         <ImageView
             android:id="@+id/dot"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
+            android:layout_width="40dp"
+            android:layout_height="50dp"
             android:layout_gravity="center"
-            android:src="@drawable/round_dot"
+            android:src="@drawable/station"
             android:contentDescription="정류장 점" />
     </FrameLayout>
 
@@ -46,9 +40,17 @@
             android:layout_weight="1"
             android:text="정류장 이름"
             android:textSize="16sp"
-            android:textColor="#000000" />
+            android:textColor="#1A1A1A"
+            android:textStyle="bold" />
 
-
-
+        <!-- 오른쪽 버스 마커 -->
+        <ImageView
+            android:id="@+id/busMarker"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/bus_icon_blue"
+            android:visibility="gone"
+            android:contentDescription="버스 마커"
+            android:layout_marginStart="8dp"/>
     </LinearLayout>
 </LinearLayout>

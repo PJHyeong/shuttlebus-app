@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="purple_500">#6200EE</color>
-    <color name="tab_selected">#6200EE</color> <!-- 선택 시 -->
-    <color name="tab_unselected">#E0E0E0</color> <!-- 선택 안 됐을 때 -->
-</resources>
