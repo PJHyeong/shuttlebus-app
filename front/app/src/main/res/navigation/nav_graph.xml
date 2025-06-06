@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/mainMenuFragment">
+
+    <!-- 메인 메뉴 -->
+    <fragment
+        android:id="@+id/mainMenuFragment"
+        android:name="com.example.shuttlebusapplication.fragment.MainMenuFragment"
+        android:label="메인 메뉴">
+        <action
+            android:id="@+id/action_mainMenuFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_timetableFragment"
+            app:destination="@id/timetableFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_noticeFragment"
+            app:destination="@id/noticeFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+
+    <!-- 지도 화면 -->
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.shuttlebusapplication.fragment.MapFragment"
+        android:label="지도"
+        tools:layout="@layout/fragment_map">
+        <action
+            android:id="@+id/action_mapFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
+
+    <!-- 공지사항 목록 -->
+    <fragment
+        android:id="@+id/noticeFragment"
+        android:name="com.example.shuttlebusapplication.fragment.NoticeFragment"
+        android:label="공지사항"
+        tools:layout="@layout/fragment_notice">
+        <action
+            android:id="@+id/action_noticeFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+        <action
+            android:id="@+id/action_noticeFragment_to_noticeDetailFragment"
+            app:destination="@id/noticeDetailFragment" />
+        <action
+            android:id="@+id/action_noticeFragment_to_addNoticeFragment"
+            app:destination="@id/addNoticeFragment" />
+    </fragment>
+
+    <!-- 공지사항 상세 -->
+    <fragment
+        android:id="@+id/noticeDetailFragment"
+        android:name="com.example.shuttlebusapplication.fragment.NoticeDetailFragment"
+        android:label="공지 상세">
+        <argument
+            android:name="noticeItem"
+            app:argType="com.example.shuttlebusapplication.model.NoticeItem" />
+        <action
+            android:id="@+id/action_noticeDetailFragment_to_noticeFragment"
+            app:destination="@id/noticeFragment" />
+    </fragment>
+
+    <!-- 공지사항 글쓰기 -->
+    <fragment
+        android:id="@+id/addNoticeFragment"
+        android:name="com.example.shuttlebusapplication.fragment.AddNoticeFragment"
+        android:label="공지 등록">
+        <action
+            android:id="@+id/action_addNoticeFragment_to_noticeFragment"
+            app:destination="@id/noticeFragment" />
+    </fragment>
+
+    <!-- 시간표 -->
+    <fragment
+        android:id="@+id/timetableFragment"
+        android:name="com.example.shuttlebusapplication.fragment.TimetableFragment"
+        android:label="시간표"
+        tools:layout="@layout/fragment_timetable">
+        <action
+            android:id="@+id/action_timetableFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
+
+    <!-- 설정 -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.shuttlebusapplication.fragment.SettingsFragment"
+        android:label="설정"
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
+
+</navigation>
