@@ -314,7 +314,7 @@ class StationInfoBottomSheetFragment : BottomSheetDialogFragment() {
             return
         }
 
-        val notifyBeforeSec = 60L // 3분 전
+        val notifyBeforeSec = 120L // 3분 전
         val triggerInMs = (etaSec - notifyBeforeSec).coerceAtLeast(0L) * 1000L
         val alarmMgr = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
