@@ -92,8 +92,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc9ae174-759b-4a72-84ef-2238e1c3d3a4" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/BackEnd/.env" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/.env" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/BackEnd/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/BackEnd/server.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +103,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\pcw98\.android\avd\Pixel_5.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -149,12 +149,12 @@
     &quot;assignee&quot;: &quot;ytw1227&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/PJHyeong/shuttlebus-app.git",
-    "accountId": "8f356e20-a36f-4e3d-9dbe-58b6f274b875"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/PJHyeong/shuttlebus-app.git&quot;,
+    &quot;accountId&quot;: &quot;8f356e20-a36f-4e3d-9dbe-58b6f274b875&quot;
   }
-}]]></component>
+}</component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -182,7 +182,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "#4 on taewoo",
-    "last_opened_file_path": "C:/Users/taeu5/AndroidStudioProjects/shuttlebus-app/frontEnd/settings.gradle.kts",
+    "last_opened_file_path": "C:/Users/pcw98/shuttlebus-app-front",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
