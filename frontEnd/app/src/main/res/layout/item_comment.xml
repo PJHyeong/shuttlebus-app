@@ -6,7 +6,7 @@
     android:padding="8dp"
     android:gravity="center_vertical">
 
-    <!-- 왼쪽: 닉네임 + 댓글 내용 -->
+    <!-- 왼쪽: 닉네임 + 댓글 + 날짜 + 시간 -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -27,6 +27,24 @@
             android:layout_height="wrap_content"
             android:text="댓글 내용"
             android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/textCommentDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025-06-06"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:layout_marginTop="2dp" />
+
+        <TextView
+            android:id="@+id/textCommentTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="17:42"
+            android:textSize="12sp"
+            android:textColor="#888888"
+            android:layout_marginTop="1dp" />
     </LinearLayout>
 
     <Button
@@ -38,8 +56,7 @@
         android:textColor="#FF0000"
         android:background="?android:selectableItemBackground"
         android:padding="4dp"
-        android:layout_marginStart="8dp"
-        android:contentDescription="댓글 삭제" />
+        android:layout_marginStart="8dp" />
 
     <Button
         android:id="@+id/btnEditComment"
@@ -50,6 +67,5 @@
         android:textColor="#0066CC"
         android:background="?android:selectableItemBackground"
         android:padding="4dp"
-        android:layout_marginStart="8dp"
-        android:contentDescription="댓글 수정" />
+        android:layout_marginStart="8dp" />
 </LinearLayout>
