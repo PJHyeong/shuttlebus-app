@@ -66,7 +66,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     fun getCurrentBusIndex(): Int {
         return currentBusIndex
     }
-    private val pollingInterval = 3_000L                   // 3초 주기
+    private val pollingInterval = 1_000L                   // 1초 주기
     private var pollingJob: Job? = null
 
     // 정류장(Station) 마커과 그 인덱스 맵
