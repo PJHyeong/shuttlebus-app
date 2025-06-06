@@ -1,8 +1,7 @@
 <resources>
-    <string name="app_name">ShuttleBusApplication</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="app_name">언제와</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_splash">언제와</string>
     <string name="title_activity_login">LoginActivity</string>
     <string name="splash_logo">셔틀버스 앱 로고</string>
     <string name="menu_button_desc">메뉴로 이동</string>
