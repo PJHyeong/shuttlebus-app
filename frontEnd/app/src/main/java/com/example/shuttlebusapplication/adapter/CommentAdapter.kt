@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.model.CommentResponse
+import com.example.shuttlebusapplication.util.TimeUtils
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -40,11 +41,10 @@ class CommentAdapter(
         holder.textComment.text = comment.content
 
         // 날짜/시간 파싱
-        val date = parseDate(comment.createdAt)
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-        holder.textCommentDate.text = dateFormat.format(date)
-        holder.textCommentTime.text = timeFormat.format(date)
+        val relativeTime = TimeUtils.getRelativeTime(comment.createdAt)
+        holder.textCommentDate.text = relativeTime
+        holder.textCommentTime.visibility = View.GONE
+
 
         val canEditOrDelete = isAdmin || comment.userId == myNickname
 
