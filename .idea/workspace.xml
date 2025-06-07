@@ -91,27 +91,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bc9ae174-759b-4a72-84ef-2238e1c3d3a4" name="Changes" comment="프론트 업데이트">
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/adapter/CommentAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/adapter/CommentAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/CommentRequest.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/LoginResponse.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/UserResponse.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/Announcement.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/Announcement.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/Arrival.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/Arrival.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/CommentResponse.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/CommentResponse.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/DirectionResponse.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/DirectionResponse.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/LocationResponse.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/LocationResponse.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/LoginRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/LoginRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeItem.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeItem.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/NoticeViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/ShuttleSchedule.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/ShuttleSchedule.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/UserRequest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/java/com/example/shuttlebusapplication/model/model/UserRequest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/item_comment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/frontEnd/app/src/main/res/layout/item_comment.xml" afterDir="false" />
-    </list>
+    <list default="true" id="bc9ae174-759b-4a72-84ef-2238e1c3d3a4" name="Changes" comment="프론트 업데이트" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -120,7 +100,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\pcw98\.android\avd\Pixel_5.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -199,7 +179,7 @@
     "cf.first.check.clang-format": "false",
     "cidr.known.project.marker": "true",
     "git-widget-placeholder": "#4 on taewoo",
-    "last_opened_file_path": "C:/Users/pcw98/shuttlebus-app-front",
+    "last_opened_file_path": "C:/Users/pcw98/shuttlebus-app",
     "project.structure.last.edited": "Modules",
     "project.structure.proportion": "0.17",
     "project.structure.side.proportion": "0.2",
