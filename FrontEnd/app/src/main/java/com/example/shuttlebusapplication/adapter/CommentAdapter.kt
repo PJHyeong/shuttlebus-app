@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shuttlebusapplication.R
 import com.example.shuttlebusapplication.model.CommentResponse
+import com.example.shuttlebusapplication.util.TimeUtils
+
 
 /**
  * CommentResponse 리스트를 받아서
@@ -18,7 +20,8 @@ class CommentAdapter(
 
     inner class CommentViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textNickname: TextView = view.findViewById(R.id.textNickname)
-        val textComment: TextView = view.findViewById(R.id.textComment)
+        val textComment: TextView = view.findViewById(R.id.textCommentDate)
+        val textCommentTime: TextView = view.findViewById(R.id.textCommentTime)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
@@ -31,6 +34,7 @@ class CommentAdapter(
         val comment = items[position]
         holder.textNickname.text = comment.userId      // CommentResponse.userId 필드에 닉네임이 들어있다고 가정
         holder.textComment.text = comment.content
+        holder.textCommentTime.text = TimeUtils.getRelativeTime(comment.createdAt)
     }
 
     override fun getItemCount(): Int = items.size
