@@ -63,7 +63,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var routePath: List<LatLng>
     private var avgSpeed = 0.0                             // m/sec
     private var currentBusIndex = 0                        // 경로 상 버스 인덱스
-    private val pollingInterval = 3_000L                   // 3초 주기
+    fun getCurrentBusIndex(): Int {
+        return currentBusIndex
+    }
+    private val pollingInterval = 1_000L                   // 1초 주기
     private var pollingJob: Job? = null
 
     // 정류장(Station) 마커과 그 인덱스 맵
@@ -554,11 +557,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onResume() {
         super.onResume()
         mapView.onResume()
+        if ((pollingJob == null || pollingJob?.isCancelled == true)
+            && ::routePath.isInitialized && routePath.isNotEmpty()) {
+            startPolling()
+        }
     }
     override fun onPause() {
+        pollingJob?.cancel()
         super.onPause()
         // locationMarker를 그대로 두고, 추가 업데이트는 하지 않음
-        pollingJob?.cancel()
         mapView.onPause()
     }
     override fun onStop() {

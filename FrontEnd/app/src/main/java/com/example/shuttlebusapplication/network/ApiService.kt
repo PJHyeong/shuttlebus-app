@@ -1,4 +1,5 @@
 
+
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -8,7 +9,9 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Header
 import retrofit2.http.Query
+import retrofit2.http.PATCH
 import retrofit2.Response
+import retrofit2.http.HTTP
 import com.example.shuttlebusapplication.model.UserRequest
 import com.example.shuttlebusapplication.model.UserResponse
 import com.example.shuttlebusapplication.model.LoginRequest
@@ -20,10 +23,12 @@ import com.example.shuttlebusapplication.model.NoticeItem
 import com.example.shuttlebusapplication.model.DirectionResponse
 import com.example.shuttlebusapplication.model.CommentRequest
 import com.example.shuttlebusapplication.model.CommentResponse
-
+import com.example.shuttlebusapplication.model.DeleteCommentRequest
+import com.example.shuttlebusapplication.model.UpdateCommentRequest
 
 interface ApiService {
-    // 버스, Direction Api 관련
+
+    // ──────────────── 버스, 경로 관련 ────────────────
 
     @GET("bus/latest")
     suspend fun getLatestLocation(): LocationResponse
@@ -35,7 +40,7 @@ interface ApiService {
         @Query("waypoints") waypoints: String?
     ): Response<DirectionResponse>
 
-    // 로그인, 회원가입 관련
+    // ──────────────── 로그인 및 회원가입 ────────────────
 
     @POST("auth/register")
     fun registerUser(@Body userRequest: UserRequest): Call<UserResponse>
@@ -43,40 +48,42 @@ interface ApiService {
     @POST("auth/login")
     fun loginUser(@Body loginRequest: LoginRequest): Call<LoginResponse>
 
+    // ──────────────── 공지사항 ────────────────
+
     @GET("announcements")
     fun getAnnouncements(): Call<List<Announcement>>
 
     @DELETE("announcements/{id}")
     fun deleteAnnouncement(@Path("id") announcementId: String): Call<Void>
 
-    // 공지사항 관련
-
     @GET("notices")
     fun getNotices(): Call<List<NoticeItem>>
 
     @POST("notices")
-    fun createNotice(
-        @Header("Authorization") token: String,
-        @Body req: NoticeRequest
-    ): Call<NoticeItem>
+    fun createNotice(@Header("Authorization") token: String, @Body req: NoticeRequest): Call<NoticeItem>
 
     @PUT("notices/{id}")
-    fun updateNotice(
-        @Header("Authorization") token: String,
-        @Path("id") id: String,
-        @Body req: NoticeRequest
-    ): Call<NoticeItem>
+    fun updateNotice(@Header("Authorization") token: String, @Path("id") id: String, @Body req: NoticeRequest): Call<NoticeItem>
 
     @DELETE("notices/{id}")
-    fun deleteNotice(
-        @Header("Authorization") token: String,
-        @Path("id") id: String
-    ): Call<Void>
+    fun deleteNotice(@Header("Authorization") token: String, @Path("id") id: String): Call<Void>
 
-    // 댓글 관련
+    // ──────────────── 댓글 관련 ────────────────
+
     @POST("comments")
     fun addComment(@Body commentRequest: CommentRequest): Call<CommentResponse>
 
     @GET("comments")
-    fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>  // ✅ 추가된 부분
+    fun getComments(@Query("announcementId") announcementId: String): Call<List<CommentResponse>>
+
+    @HTTP(method = "DELETE", path = "comments/{id}", hasBody = true)
+    fun deleteCommentWithBody(
+        @Path("id") commentId: String,
+        @Body deleteRequest: DeleteCommentRequest
+    ): Call<Void>
+    @PATCH("comments/{id}")
+    fun updateComment(
+        @Path("id") commentId: String,
+        @Body updateRequest: UpdateCommentRequest
+    ): Call<CommentResponse>
 }

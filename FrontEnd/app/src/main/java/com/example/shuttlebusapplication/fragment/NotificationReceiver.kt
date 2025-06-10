@@ -47,7 +47,7 @@ class NotificationReceiver : BroadcastReceiver() {
             // 내장 아이콘(android.R.drawable.ic_dialog_info)을 사용
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("셔틀 도착 알림")
-            .setContentText("$stationName 에 $busName 셔틀이 3분 후 도착합니다.")
+            .setContentText("$stationName 에 $busName 이잠시후 도착합니다.")
             .setAutoCancel(true)
             .build()
 

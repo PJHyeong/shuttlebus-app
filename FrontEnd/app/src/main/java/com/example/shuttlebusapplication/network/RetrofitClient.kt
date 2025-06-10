@@ -8,7 +8,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "https://exact-mammal-openly.ngrok-free.app/api/"
-    // 테스트 환경이 바뀔떄마다 base url 변경 필요
 
 
     private val logging = HttpLoggingInterceptor().apply {

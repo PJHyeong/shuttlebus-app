@@ -15,7 +15,6 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var etConfirmPassword: EditText
     private lateinit var textStudentIdError: TextView
     private lateinit var textPasswordError: TextView
-    private lateinit var switchPush: Switch
     private lateinit var btnSignUp: Button
     private lateinit var btnBackToLogin: ImageButton
 
@@ -29,7 +28,6 @@ class SignupActivity : AppCompatActivity() {
         etConfirmPassword = findViewById(R.id.etConfirmPassword)
         textStudentIdError = findViewById(R.id.textStudentIdError)
         textPasswordError = findViewById(R.id.textPasswordError)
-        switchPush = findViewById(R.id.switchPush)
         btnSignUp = findViewById(R.id.btnSignUp)
         btnBackToLogin = findViewById(R.id.btnBackToLogin)
 
@@ -44,6 +42,7 @@ class SignupActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 validateInput()
             }
+
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         }
@@ -56,7 +55,7 @@ class SignupActivity : AppCompatActivity() {
         btnSignUp.setOnClickListener {
             val studentId = etStudentId.text.toString()
             val password = etPassword.text.toString()
-            val pushAgree = switchPush.isChecked
+            val pushAgree = true // 스위치가 없으므로 기본값 true로 고정
 
             Log.d("SignupActivity", "회원가입 완료됨 → 닉네임 입력으로 이동")
             val intent = Intent(this, NicknameActivity::class.java)
@@ -64,8 +63,6 @@ class SignupActivity : AppCompatActivity() {
             intent.putExtra("password", password)
             intent.putExtra("pushAgree", pushAgree)
             startActivity(intent)
-
-            // ❌ finish() 제거함 — 닉네임 화면이 제대로 뜨도록 하기 위해
         }
     }
 

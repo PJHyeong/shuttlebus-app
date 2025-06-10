@@ -16,9 +16,9 @@ object TimeUtils {
 
             when {
                 diff < 60 * 1000 -> "방금 전"
-                diff < 60 * 60 * 1000 -> "${diff / 60000}분 전"
-                diff < 24 * 60 * 60 * 1000 -> "${diff / 3600000}시간 전"
-                else -> SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(past)
+                diff < 60 * 60 * 1000 -> "${diff / (60 * 1000)}분 전"
+                diff < 24 * 60 * 60 * 1000 -> "${diff / (60 * 60 * 1000)}시간 전"
+                else -> "${diff / (24 * 60 * 60 * 1000)}일 전"
             }
         } catch (e: Exception) {
             ""
